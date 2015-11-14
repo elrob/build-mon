@@ -30,7 +30,9 @@
        :headers {"Content-Type" "text/html"}
        :body (generate-html status result)}))
 
-(defn -main [& args]
-  (let [[vso-account vso-project vso-personal-access-token] args]
-    (ring-jetty/run-jetty (partial handler vso-account vso-project vso-personal-access-token)
-                          {:port 3000})))
+(defn -main [& [vso-account vso-project vso-personal-access-token port]]
+  (let [port (Integer. (or port 3000))]
+    (if (and vso-account vso-project vso-personal-access-token port)
+      (ring-jetty/run-jetty (partial handler vso-account vso-project vso-personal-access-token)
+                            {:port port})
+      (prn "App didn't start due to missing parameters."))))
