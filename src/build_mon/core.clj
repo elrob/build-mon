@@ -5,7 +5,10 @@
   (:gen-class))
 
 (defn generate-html [status result]
-  (str "<head><meta http-equiv=\"refresh\" content=\"20\" /></head>
+  (str "<head>
+         <title>Build Status</title>
+         <meta http-equiv=\"refresh\" content=\"20\" />
+       </head>
        <body style=\"background-color:" (cond (= result "succeeded") "green"
                                               (nil? result) "yellow"
                                               :default "red")
