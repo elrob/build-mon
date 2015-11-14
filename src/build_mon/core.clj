@@ -1,6 +1,7 @@
 (ns build-mon.core
   (:require [ring.adapter.jetty :as ring-jetty]
-            [clj-http.client :as client])
+            [clj-http.client :as client]
+            [cheshire.core :as json])
   (:gen-class))
 
 (defn generate-html [status result]
@@ -17,18 +18,13 @@
 (defn handler [account project token request]
   (let [last-build-url (str "https://" account  ".visualstudio.com/defaultcollection/"
                             project "/_apis/build/builds?api-version=2.0&$top=1")
-        last-build (-> (client/get last-build-url
-                                   {:accept :json :as :json
-                                    :basic-auth ["USERNAME CAN BE ANY VALUE" token]})
-                       :body :value first)
-        status (:status last-build)
-        result (:result last-build)]
-      (prn "--")
-      (prn "Status:" status)
-      (prn "Result:" result)
+        api-response (client/get last-build-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
+        last-build (try (-> api-response :body (json/parse-string true) :value first)
+                        (catch Exception e))]
+    (when last-build
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (generate-html status result)}))
+       :body (generate-html (:status last-build) (:result last-build))})))
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
