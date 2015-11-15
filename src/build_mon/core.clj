@@ -1,22 +1,24 @@
 (ns build-mon.core
   (:require [ring.adapter.jetty :as ring-jetty]
+            [ring.middleware.resource :as resource]
             [clj-http.client :as client]
             [cheshire.core :as json])
   (:gen-class))
 
 (defn generate-html [status result]
-  (str "<head>
-         <title>Build Status</title>
-         <meta http-equiv=\"refresh\" content=\"20\" />
-       </head>
-       <body style=\"background-color:" (cond (= result "succeeded") "green"
-                                              (nil? result) "yellow"
-                                              :default "red")
-       ";\">"
-       (if result
-         (str "<h1 style=\"color:white;font-size:400%;\">" result "</h1>")
-         (str "<h1 style=\"color:black;font-size:400%;\">" status "</h1>"))
-       "</body>"))
+  (let [background-colour (cond (= result "succeeded") "green"
+                                (nil? result) "yellow"
+                                :default "red")
+        font-colour (if result "white" "black")
+        text (if result result status)]
+    (str "<head>"
+         "<title>Build Status</title>"
+         "<meta http-equiv=\"refresh\" content=\"20\" />"
+         "<link rel=\"shortcut icon\" href=\"/favicon_" background-colour ".ico\" />"
+         "</head>"
+         "<body style=\"background-color:" background-colour ";\">"
+         "<h1 style=\"color:" font-colour ";font-size:400%;\">" text "</h1>"
+         "</body>")))
 
 (defn handler [account project token request]
   (let [last-build-url (str "https://" account  ".visualstudio.com/defaultcollection/"
@@ -32,6 +34,7 @@
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)
-      (ring-jetty/run-jetty (partial handler vso-account vso-project vso-personal-access-token)
-                            {:port port})
+      (let [wrapped-handler (-> (partial handler vso-account vso-project vso-personal-access-token)
+                                (resource/wrap-resource "public"))]
+        (ring-jetty/run-jetty wrapped-handler {:port port}))
       (prn "App didn't start due to missing parameters."))))

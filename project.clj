@@ -8,5 +8,6 @@
                  [clj-http "2.0.0"]
                  [cheshire "5.5.0"]]
   :main ^:skip-aot build-mon.core
+  :resource-paths ["resources"]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
