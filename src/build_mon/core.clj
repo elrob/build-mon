@@ -15,10 +15,13 @@
         (and (in-progress? build) (not (succeeded? previous-build))) "orange"
         :default "red"))
 
+(defn determine-text [build]
+  (if (in-progress? build) (:status build) (:result build)))
+
 (defn generate-html [build previous-build]
   (let [background-colour (determine-background-colour build previous-build)
         font-colour (if (in-progress? build) "black" "white")
-        text (if (in-progress? build) (:status build) (:result build))]
+        text (determine-text build)]
     (str "<head>"
          "<title>Build Status</title>"
          "<meta http-equiv=\"refresh\" content=\"20\" />"
