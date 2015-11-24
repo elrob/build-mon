@@ -5,12 +5,20 @@
             [cheshire.core :as json])
   (:gen-class))
 
-(defn generate-html [status result]
-  (let [background-colour (cond (= result "succeeded") "green"
-                                (nil? result) "yellow"
-                                :default "red")
-        font-colour (if result "white" "black")
-        text (if result result status)]
+(defn succeeded? [build] (= (:result build) "succeeded"))
+
+(defn in-progress? [build] (nil? (:result build)))
+
+(defn determine-background-colour [build previous-build]
+  (cond (succeeded? build) "green"
+        (and (in-progress? build) (succeeded? previous-build)) "yellow"
+        (and (in-progress? build) (not (succeeded? previous-build))) "orange"
+        :default "red"))
+
+(defn generate-html [build previous-build]
+  (let [background-colour (determine-background-colour build previous-build)
+        font-colour (if (in-progress? build) "black" "white")
+        text (if (in-progress? build) (:status build) (:result build))]
     (str "<head>"
          "<title>Build Status</title>"
          "<meta http-equiv=\"refresh\" content=\"20\" />"
@@ -21,15 +29,19 @@
          "</body>")))
 
 (defn handler [account project token request]
-  (let [last-build-url (str "https://" account  ".visualstudio.com/defaultcollection/"
-                            project "/_apis/build/builds?api-version=2.0&$top=1")
-        api-response (client/get last-build-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
-        last-build (try (-> api-response :body (json/parse-string true) :value first)
-                        (catch Exception e))]
-    (when last-build
+  (let [last-two-builds-url (str "https://" account  ".visualstudio.com/defaultcollection/"
+                                 project "/_apis/build/builds?api-version=2.0&$top=2")
+        api-response (client/get last-two-builds-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
+        [build previous-build] (try (-> api-response :body (json/parse-string true) :value)
+                                    (catch Exception e))]
+    (prn "Build - Result: " (:result build))
+    (prn "Build - Status: " (:status build))
+    (prn "Prev  - Result: " (:result build))
+    (prn "Prev  - Status: " (:status build))
+    (when build
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (generate-html (:status last-build) (:result last-build))})))
+       :body (generate-html build previous-build)})))
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
