@@ -20,7 +20,9 @@
   (if (in-progress? build) (:status build) (:result build)))
 
 (defn determine-build-author [build]
-  (:displayName (:requestedFor build)))
+  (or
+    (-> build :requestedFor :displayName)
+    "N/A"))
 
 (defn determine-text [build]
   (str

@@ -18,7 +18,8 @@
   (is (= (c/determine-status-text in-progress-build) "inProgress")))
 
 (deftest determine-build-author
-  (is (= (c/determine-build-author {:requestedFor {:displayName "Bob"}}) "Bob")))
+  (is (= (c/determine-build-author {:requestedFor {:displayName "Bob"}}) "Bob"))
+  (is (= (c/determine-build-author {}) "N/A")))
 
 (deftest determine-text
   (let [build {:buildNumber "123"
