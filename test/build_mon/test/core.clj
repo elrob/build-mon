@@ -12,7 +12,27 @@
   (is (= (c/determine-background-colour in-progress-build succeeded-build) "yellow"))
   (is (= (c/determine-background-colour in-progress-build failed-build) "orange")))
 
+(deftest determine-status-text
+  (is (= (c/determine-status-text succeeded-build) "succeeded"))
+  (is (= (c/determine-status-text failed-build) "failed"))
+  (is (= (c/determine-status-text in-progress-build) "inProgress")))
+
+(deftest determine-build-author
+  (is (= (c/determine-build-author {:requestedFor {:displayName "Bob"}}) "Bob"))
+  (is (= (c/determine-build-author {}) "N/A")))
+
 (deftest determine-text
-  (is (= (c/determine-text succeeded-build) "succeeded"))
-  (is (= (c/determine-text failed-build) "failed"))
-  (is (= (c/determine-text in-progress-build) "inProgress")))
+  (let [build {:buildNumber "123"
+               :result "succeeded"
+               :requestedFor {:displayName "Bob"}}]
+  (is (= (c/determine-text build) "123 – Bob – succeeded"))))
+
+(deftest determine-refresh-rate
+  (let [default-rate 20]
+    (is (= (c/determine-refresh-rate {}) default-rate))
+    (is (= (c/determine-refresh-rate {"refresh" "true"}) default-rate))
+    (is (= (c/determine-refresh-rate {"refresh" "yes"}) default-rate))
+    (is (= (c/determine-refresh-rate {"refresh" "false"}) nil))
+    (is (= (c/determine-refresh-rate {"refresh" "no"}) nil))
+    (is (= (c/determine-refresh-rate {"refresh" "30"}) 30))
+    (is (= (c/determine-refresh-rate {"refresh" "rubbish"}) nil))))
