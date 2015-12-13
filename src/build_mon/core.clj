@@ -19,9 +19,14 @@
 (defn determine-status-text [build]
   (if (in-progress? build) (:status build) (:result build)))
 
+(defn determine-build-author [build]
+  (:displayName (:requestedFor build)))
+
 (defn determine-text [build]
   (str
     (:buildNumber build)
+    " – "
+    (determine-build-author build)
     " – "
     (determine-status-text build)))
 

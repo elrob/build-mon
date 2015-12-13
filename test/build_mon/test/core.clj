@@ -17,8 +17,14 @@
   (is (= (c/determine-status-text failed-build) "failed"))
   (is (= (c/determine-status-text in-progress-build) "inProgress")))
 
+(deftest determine-build-author
+  (is (= (c/determine-build-author {:requestedFor {:displayName "Bob"}}) "Bob")))
+
 (deftest determine-text
-  (is (= (c/determine-text {:buildNumber "123" :result "succeeded"}) "123 – succeeded")))
+  (let [build {:buildNumber "123"
+               :result "succeeded"
+               :requestedFor {:displayName "Bob"}}]
+  (is (= (c/determine-text build) "123 – Bob – succeeded"))))
 
 (deftest determine-refresh-rate
   (let [default-rate 20]
