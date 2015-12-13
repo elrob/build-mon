@@ -20,9 +20,7 @@
   (if (in-progress? build) (:status build) (:result build)))
 
 (defn determine-build-author [build]
-  (or
-    (-> build :requestedFor :displayName)
-    "N/A"))
+  (or (-> build :requestedFor :displayName) "N/A"))
 
 (defn determine-text [build]
   (let [sep " – "]
@@ -34,7 +32,7 @@
       (determine-status-text build))))
 
 (defn tryparse [string]
-  (try (. Integer parseInt string)
+  (try (Integer. string)
        (catch Exception e nil)))
 
 (defn determine-refresh-rate [params]
@@ -50,7 +48,7 @@
         text (determine-text build)]
     (str "<head>"
          "<title>Build Status</title>"
-         (if refresh (str "<meta http-equiv=\"refresh\" content=\"" refresh "\" />"))
+         (when refresh (str "<meta http-equiv=\"refresh\" content=\"" refresh "\" />"))
          "<link rel=\"shortcut icon\" href=\"/favicon_" background-colour ".ico\" />"
          "</head>"
          "<body style=\"background-color:" background-colour ";\">"
