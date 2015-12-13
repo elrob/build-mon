@@ -70,7 +70,7 @@
     (prn "Prev  - Status: " (:status build))
     (when build
       {:status 200
-       :headers {"Content-Type" "text/html"}
+       :headers {"Content-Type" "text/html; charset=utf-8"}
        :body (generate-html build previous-build refresh)})))
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
