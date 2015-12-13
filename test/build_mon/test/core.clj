@@ -12,10 +12,10 @@
   (is (= (c/determine-background-colour in-progress-build succeeded-build) "yellow"))
   (is (= (c/determine-background-colour in-progress-build failed-build) "orange")))
 
-(deftest determine-text
-  (is (= (c/determine-text succeeded-build) "succeeded"))
-  (is (= (c/determine-text failed-build) "failed"))
-  (is (= (c/determine-text in-progress-build) "inProgress")))
+(deftest determine-status-text
+  (is (= (c/determine-status-text succeeded-build) "succeeded"))
+  (is (= (c/determine-status-text failed-build) "failed"))
+  (is (= (c/determine-status-text in-progress-build) "inProgress")))
 
 (deftest determine-refresh-rate
   (let [default-rate 20]
