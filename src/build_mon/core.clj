@@ -20,7 +20,10 @@
   (if (in-progress? build) (:status build) (:result build)))
 
 (defn determine-text [build]
-  (determine-status-text build))
+  (str
+    (:buildNumber build)
+    " – "
+    (determine-status-text build)))
 
 (defn tryparse [string]
   (try (. Integer parseInt string)

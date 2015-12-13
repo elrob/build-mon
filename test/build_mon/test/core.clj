@@ -17,6 +17,9 @@
   (is (= (c/determine-status-text failed-build) "failed"))
   (is (= (c/determine-status-text in-progress-build) "inProgress")))
 
+(deftest determine-text
+  (is (= (c/determine-text {:buildNumber "123" :result "succeeded"}) "123 – succeeded")))
+
 (deftest determine-refresh-rate
   (let [default-rate 20]
     (is (= (c/determine-refresh-rate {}) default-rate))
