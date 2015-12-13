@@ -25,12 +25,13 @@
     "N/A"))
 
 (defn determine-text [build]
-  (str
-    (:buildNumber build)
-    " – "
-    (determine-build-author build)
-    " – "
-    (determine-status-text build)))
+  (let [sep " – "]
+    (str
+      (:buildNumber build)
+      sep
+      (determine-build-author build)
+      sep
+      (determine-status-text build))))
 
 (defn tryparse [string]
   (try (. Integer parseInt string)
