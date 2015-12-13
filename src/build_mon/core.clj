@@ -40,7 +40,7 @@
          "<link rel=\"shortcut icon\" href=\"/favicon_" background-colour ".ico\" />"
          "</head>"
          "<body style=\"background-color:" background-colour ";\">"
-         "<h1 style=\"color:" font-colour ";font-size:400%;\">" text "</h1>"
+         "<h1 style=\"color:" font-colour ";font-size:400%;text-align:center;\">" text "</h1>"
          "</body>")))
 
 (defn handler [account project token request]
