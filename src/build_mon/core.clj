@@ -62,10 +62,11 @@
         [build previous-build] (try (-> api-response :body (json/parse-string true) :value)
                                     (catch Exception e))
         refresh (determine-refresh-rate (:query-params request))]
-    (prn "Build - Result: " (:result build))
-    (prn "Build - Status: " (:status build))
-    (prn "Prev  - Result: " (:result build))
-    (prn "Prev  - Status: " (:status build))
+    (prn "--------------------------------------")
+    (prn (str "Build - Result: " (:result build)))
+    (prn (str "Build - Status: " (:status build)))
+    (prn (str "Prev  - Result: " (:result build)))
+    (prn (str "Prev  - Status: " (:status build)))
     (when build
       {:status 200
        :headers {"Content-Type" "text/html; charset=utf-8"}
