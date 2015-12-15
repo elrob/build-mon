@@ -51,7 +51,7 @@
                successful-build-html => (contains "<link rel=\"shortcut icon\" href=\"favicon_green.ico\" />"))
          (fact "body has a green background"
                successful-build-html => (contains "<body style=\"background-color:green;\">"))
-         (fact "font colour is black"
+         (fact "font colour is white"
                successful-build-html => (contains "<h1 style=\"color:white;font-size:400%;text-align:center;\">")))
 
        (fact "refresh line is generated when refresh value is passed"
