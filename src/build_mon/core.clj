@@ -6,15 +6,20 @@
             [cheshire.core :as json])
   (:gen-class))
 
+(def background-colours {:green "green" :yellow "yellow" :orange "orange" :red "red"})
+
 (defn succeeded? [build] (= (:result build) "succeeded"))
 
 (defn in-progress? [build] (nil? (:result build)))
 
+(defn background-colour-key->favicon-filename [background-colour]
+  (str "favicon_" (name background-colour) ".ico"))
+
 (defn determine-background-colour [build previous-build]
-  (cond (succeeded? build) "green"
-        (and (in-progress? build) (succeeded? previous-build)) "yellow"
-        (and (in-progress? build) (not (succeeded? previous-build))) "orange"
-        :default "red"))
+  (cond (succeeded? build) :green
+        (and (in-progress? build) (succeeded? previous-build)) :yellow
+        (and (in-progress? build) (not (succeeded? previous-build))) :orange
+        :default :red))
 
 (defn determine-status-text [build]
   (if (in-progress? build) (:status build) (:result build)))
@@ -44,14 +49,15 @@
 
 (defn generate-html [build previous-build refresh]
   (let [background-colour (determine-background-colour build previous-build)
+        favicon-filename (background-colour-key->favicon-filename background-colour)
         font-colour (if (in-progress? build) "black" "white")
         text (determine-text build)]
     (str "<head>"
          "<title>Build Status</title>"
          (when refresh (str "<meta http-equiv=\"refresh\" content=\"" refresh "\" />"))
-         "<link rel=\"shortcut icon\" href=\"/favicon_" background-colour ".ico\" />"
+         "<link rel=\"shortcut icon\" href=\"" favicon-filename "\" />"
          "</head>"
-         "<body style=\"background-color:" background-colour ";\">"
+         "<body style=\"background-color:" (background-colour background-colours) ";\">"
          "<h1 style=\"color:" font-colour ";font-size:400%;text-align:center;\">" text "</h1>"
          "</body>")))
 

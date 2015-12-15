@@ -10,4 +10,6 @@
   :main ^:skip-aot build-mon.core
   :resource-paths ["resources"]
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:dev {:dependencies [[midje "1.8.2"]]
+                   :plugins  [[lein-midje "3.2"]]}
+             :uberjar {:aot :all}})

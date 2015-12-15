@@ -13,3 +13,9 @@ Run app:
 
 Visit [localhost:3000](http://localhost:3000)
 
+## Development
+
+Run tests:
+
+    lein midje [:autotest]
+
