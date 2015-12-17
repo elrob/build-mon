@@ -28,7 +28,7 @@
   (try (Integer. string)
        (catch Exception e nil)))
 
-(defn determine-refresh-rate [params]
+(defn determine-refresh-interval [params]
   (let [refresh (get params "refresh")]
     (case refresh
       (nil "true" "yes") 20
@@ -70,7 +70,7 @@
 (defn handler [account project token request]
   (let [[build previous-build] (get-last-two-builds account project token)
         commit-message (get-commit-message account token build)
-        refresh (determine-refresh-rate (:query-params request))]
+        refresh (determine-refresh-interval (:query-params request))]
     (prn "--------------------------------------")
     (prn (str "Commit message: " commit-message))
     (prn (str "Build - Result: " (:result build)))

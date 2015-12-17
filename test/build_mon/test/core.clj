@@ -18,13 +18,13 @@
        (c/determine-status-text failed-build) => "failed"
        (c/determine-status-text in-progress-build) => "inProgress")
 
-(let [default-rate 20]
+(let [default-refresh-interval 20]
   (tabular
-    (facts "determine-refresh-rate"
-           (c/determine-refresh-rate ?params) => ?expected)
+    (facts "determine-refresh-interval"
+           (c/determine-refresh-interval ?params) => ?expected)
     ?params               ?expected
-    {"refresh" "true"}    default-rate
-    {"refresh" "yes"}     default-rate
+    {"refresh" "true"}    default-refresh-interval
+    {"refresh" "yes"}     default-refresh-interval
     {"refresh" "30"}      30
     {"refresh" "false"}   nil
     {"refresh" "no"}      nil
