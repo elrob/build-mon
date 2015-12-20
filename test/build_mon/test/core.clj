@@ -51,8 +51,8 @@
          (fact "font colour is white"
                successful-build-html => (contains "<h1 style=\"color:white;font-size:400%;text-align:center;\">")))
 
-       (fact "refresh line is generated when refresh value is passed"
-             (c/generate-html succeeded-build succeeded-build "commit" 20) => (contains "<meta http-equiv=\"refresh\" content=\"20\" />")
-             (c/generate-html succeeded-build succeeded-build "commit" 60) => (contains "<meta http-equiv=\"refresh\" content=\"60\" />"))
+       (fact "refresh html script tags are generated when refresh value is passed"
+             (c/generate-html succeeded-build succeeded-build "commit" 20) => (contains "refreshSeconds = 20")
+             (c/generate-html succeeded-build succeeded-build "commit" 60) => (contains "refreshSeconds = 60"))
        (fact "refresh line is not generated if nil refresh value is passed"
-             (c/generate-html succeeded-build succeeded-build "commit "nil) =not=> (contains "meta")))
+             (c/generate-html succeeded-build succeeded-build "commit "nil) =not=> (contains "script")))

@@ -42,8 +42,9 @@
         status-text (determine-status-text build)]
     (str "<head>"
          "<title>Build Status</title>"
-         (when refresh (str "<meta http-equiv=\"refresh\" content=\"" refresh "\" />"))
          "<link rel=\"shortcut icon\" href=\"" favicon-filename "\" />"
+         (when refresh (str "<script>window.refreshSeconds = " refresh ";</script>"
+                            "<script src=\"refresh.js\" defer=\"defer\"></script>"))
          "</head>"
          "<body style=\"background-color:" (background-colour background-colours) ";\">"
          "<h1 style=\"color:" font-colour ";font-size:400%;text-align:center;\">" status-text "</h1>"
