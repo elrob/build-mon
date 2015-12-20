@@ -6,6 +6,9 @@
             [cheshire.core :as json])
   (:gen-class))
 
+(def default-refresh-interval 20)
+(def minimum-refresh-interval 5)
+
 (def background-colours {:green "green" :yellow "yellow" :orange "orange" :red "red"})
 
 (defn succeeded? [build] (= (:result build) "succeeded"))
@@ -24,16 +27,18 @@
 (defn determine-status-text [build]
   (if (in-progress? build) (:status build) (:result build)))
 
-(defn tryparse [string]
-  (try (Integer. string)
+(defn tryparse [refresh-interval-string]
+  (try (let [refresh-interval (Integer. refresh-interval-string)]
+         (if (< refresh-interval minimum-refresh-interval)
+           minimum-refresh-interval
+           refresh-interval))
        (catch Exception e nil)))
 
 (defn determine-refresh-interval [params]
   (let [refresh (get params "refresh")]
-    (case refresh
-      (nil "true" "yes") 20
-      ("false" "no") nil
-      (tryparse refresh))))
+    (if refresh
+      (tryparse refresh)
+      default-refresh-interval)))
 
 (defn generate-html [build previous-build commit-message refresh]
   (let [background-colour (determine-background-colour build previous-build)

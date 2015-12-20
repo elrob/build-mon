@@ -18,17 +18,17 @@
        (c/determine-status-text failed-build) => "failed"
        (c/determine-status-text in-progress-build) => "inProgress")
 
-(let [default-refresh-interval 20]
-  (tabular
+(tabular
     (facts "determine-refresh-interval"
            (c/determine-refresh-interval ?params) => ?expected)
     ?params               ?expected
-    {"refresh" "true"}    default-refresh-interval
-    {"refresh" "yes"}     default-refresh-interval
+    {"refresh" nil}       c/default-refresh-interval
     {"refresh" "30"}      30
-    {"refresh" "false"}   nil
-    {"refresh" "no"}      nil
-    {"refresh" "rubbish"} nil))
+    {"refresh" "5"}       c/minimum-refresh-interval
+    {"refresh" "4"}       c/minimum-refresh-interval
+    {"refresh" "1"}       c/minimum-refresh-interval
+    {"refresh" "notInt"}  nil
+    {"refresh" "0.5"}     nil)
 
 (fact "there are no missing favicons"
       (let [filenames-in-public-directory (map str (.list (io/file (io/resource "public"))))
