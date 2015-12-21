@@ -30,15 +30,6 @@
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
 (facts "about generating html"
-       (let [build {:result "succeeded" :buildNumber "2015.12.17.04"}
-             successful-build-html (c/generate-html build succeeded-build "great commit" 20)]
-         (fact "build number is displayed"
-               successful-build-html => (contains "2015.12.17.04"))
-         (fact "commit message is displayed"
-               successful-build-html => (contains "great commit"))
-         (fact "favicon filename is included in link tag"
-               successful-build-html => (contains "<link href=\"favicon_succeeded.ico\"")))
-
        (tabular
          (fact "correct status is displayed, correct favicon is used, body has correct css class"
                (let [html-string (c/generate-html ?build ?previous :anything :anything)]
@@ -50,6 +41,13 @@
          failed-build       :anything         "failed"       "failed"
          in-progress-build  succeeded-build   "inProgress"   "in-progress"
          in-progress-build  failed-build      "inProgress"   "in-progress-after-failed")
+
+       (let [build {:result "succeeded" :buildNumber "2015.12.17.04"}
+             successful-build-html (c/generate-html build succeeded-build "great commit" 20)]
+         (fact "build number is displayed"
+               successful-build-html => (contains "2015.12.17.04"))
+         (fact "commit message is displayed"
+               successful-build-html => (contains "great commit")))
 
        (fact "refresh html script tags are generated when refresh value is passed"
              (c/generate-html succeeded-build succeeded-build "commit" 20) => (contains "refreshSeconds = 20")
