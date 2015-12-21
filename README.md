@@ -1,3 +1,5 @@
+[![Build Status](https://snap-ci.com/elrob/build-mon/branch/master/build_image)](https://snap-ci.com/elrob/build-mon/branch/master)
+
 # build-mon
 
 A simple build monitor to monitor Visual Studio Online builds
