@@ -9,7 +9,9 @@ A simple build monitor to monitor Visual Studio Online builds
 Install [Leiningen](http://leiningen.org/)
 
 Obtain a personal access token for Visual Studio Online with two permissions boxes ticked:
-'Build (read)' and 'Code (read)'
+
+- 'Build (read)' for reading build status
+- 'Code (read)' for displaying commit messages (optional)
 
 Run app:
 
