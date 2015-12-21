@@ -10,8 +10,8 @@ Install [Leiningen](http://leiningen.org/)
 
 Obtain a personal access token for Visual Studio Online with two permissions boxes ticked:
 
-- 'Build (read)' for reading build status
-- 'Code (read)' for displaying commit messages (optional)
+- 'Build (read)' for dispaying build status
+- 'Code (read)'  for displaying commit messages (optional)
 
 Run app:
 
