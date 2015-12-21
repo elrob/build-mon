@@ -12,7 +12,7 @@ refreshBody = function(){
       }
       else {
         var updatedBodyElement = document.createElement('body');
-        updatedBodyElement.innerHTML = "SERVER ERROR";
+        updatedBodyElement.innerHTML = "BUILD MONITOR UNREACHABLE";
         var currentBodyElement = document.getElementsByTagName('body')[0];
         currentBodyElement.parentNode.replaceChild(updatedBodyElement, currentBodyElement);
       }

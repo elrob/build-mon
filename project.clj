@@ -6,7 +6,8 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [ring/ring-jetty-adapter "1.4.0"]
                  [clj-http "2.0.0"]
-                 [cheshire "5.5.0"]]
+                 [cheshire "5.5.0"]
+                 [hiccup "1.0.5"]]
   :main ^:skip-aot build-mon.core
   :resource-paths ["resources"]
   :target-path "target/%s"

@@ -3,59 +3,57 @@
             [ring.middleware.resource :as resource]
             [ring.middleware.params :as params]
             [clj-http.client :as client]
-            [cheshire.core :as json])
+            [cheshire.core :as json]
+            [hiccup.core :as hiccup])
   (:gen-class))
+
+(def states #{:succeeded :failed :in-progress :in-progress-after-failed})
 
 (def default-refresh-interval 20)
 (def minimum-refresh-interval 5)
-
-(def background-colours {:green "green" :yellow "yellow" :orange "orange" :red "red"})
 
 (defn succeeded? [build] (= (:result build) "succeeded"))
 
 (defn in-progress? [build] (nil? (:result build)))
 
-(defn background-colour-key->favicon-filename [background-colour]
-  (str "favicon_" (name background-colour) ".ico"))
+(defn get-state [build previous-build]
+  (cond (succeeded? build) :succeeded
+        (and (in-progress? build) (succeeded? previous-build)) :in-progress
+        (and (in-progress? build) (not (succeeded? previous-build))) :in-progress-after-failed
+        :default :failed))
 
-(defn determine-background-colour [build previous-build]
-  (cond (succeeded? build) :green
-        (and (in-progress? build) (succeeded? previous-build)) :yellow
-        (and (in-progress? build) (not (succeeded? previous-build))) :orange
-        :default :red))
+(defn favicon-filename [state]
+  (str "favicon_" (name state) ".ico"))
 
-(defn determine-status-text [build]
+(defn status-text [build]
   (if (in-progress? build) (:status build) (:result build)))
 
-(defn tryparse [refresh-interval-string]
+(defn tryparse-refresh [refresh-interval-string]
   (try (let [refresh-interval (Integer. refresh-interval-string)]
          (if (< refresh-interval minimum-refresh-interval)
            minimum-refresh-interval
            refresh-interval))
        (catch Exception e nil)))
 
-(defn determine-refresh-interval [params]
+(defn refresh-interval [params]
   (let [refresh (get params "refresh")]
     (if refresh
-      (tryparse refresh)
+      (tryparse-refresh refresh)
       default-refresh-interval)))
 
 (defn generate-html [build previous-build commit-message refresh]
-  (let [background-colour (determine-background-colour build previous-build)
-        favicon-filename (background-colour-key->favicon-filename background-colour)
-        font-colour (if (in-progress? build) "black" "white")
-        status-text (determine-status-text build)]
-    (str "<head>"
-         "<title>Build Status</title>"
-         "<link rel=\"shortcut icon\" href=\"" favicon-filename "\" />"
-         (when refresh (str "<script>window.refreshSeconds = " refresh ";</script>"
-                            "<script src=\"refresh.js\" defer=\"defer\"></script>"))
-         "</head>"
-         "<body style=\"background-color:" (background-colour background-colours) ";\">"
-         "<h1 style=\"color:" font-colour ";font-size:400%;text-align:center;\">" status-text "</h1>"
-         "<h1 style=\"color:" font-colour ";font-size:300%;text-align:center;\">" (:buildNumber build) "</h1>"
-         "<div style=\"color:" font-colour ";font-size:300%;text-align:center;\">" commit-message "</div>"
-         "</body>")))
+  (let [state (get-state build previous-build)]
+    (hiccup/html
+      [:head
+       [:title "Build Status"]
+       [:link {:rel "shortcut icon" :href (favicon-filename state)}]
+       [:link {:rel "stylesheet ":href "style.css" :type "text/css"}]
+       (when refresh (list [:script (str "window.refreshSeconds = " refresh ";")]
+                           [:script {:src "refresh.js" :defer "defer"}]))]
+      [:body {:class state}
+       [:h1.status (status-text build)]
+       [:h1.build-number (:buildNumber build)]
+       [:div.commit-message commit-message]])))
 
 (defn get-commit-message [account token build]
   (let [repository-id (-> build :repository :id)
@@ -76,7 +74,7 @@
 (defn handler [account project token request]
   (let [[build previous-build] (get-last-two-builds account project token)
         commit-message (get-commit-message account token build)
-        refresh (determine-refresh-interval (:query-params request))]
+        refresh (refresh-interval (:query-params request))]
     (prn "--------------------------------------")
     (prn (str "Commit message: " commit-message))
     (prn (str "Build - Result: " (:result build)))

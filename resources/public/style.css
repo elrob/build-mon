@@ -1,0 +1,35 @@
+body{
+  text-align: center;
+}
+
+.succeeded{
+  background-color: green;
+  color: white;
+}
+
+.failed{
+  background-color: red;
+  color: white;
+}
+
+.in-progress{
+  background-color: yellow;
+  color: black;
+}
+
+.in-progress-after-failed{
+  background-color: orange;
+  color: black;
+}
+
+.status{
+  font-size: 400%;
+}
+
+.build-number{
+  font-size: 300%;
+}
+
+.commit-message{
+  font-size: 300%;
+}

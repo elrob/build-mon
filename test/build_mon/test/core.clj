@@ -7,20 +7,14 @@
 (def in-progress-build {:result nil :status "inProgress"})
 (def failed-build      {:result "failed"})
 
-(facts "determine-background-colour"
-       (c/determine-background-colour succeeded-build :anything) => :green
-       (c/determine-background-colour failed-build :anything) => :red
-       (c/determine-background-colour in-progress-build succeeded-build) => :yellow
-       (c/determine-background-colour in-progress-build failed-build) => :orange)
-
-(facts "determine-status-text"
-       (c/determine-status-text succeeded-build) => "succeeded"
-       (c/determine-status-text failed-build) => "failed"
-       (c/determine-status-text in-progress-build) => "inProgress")
+(facts "status-text"
+       (c/status-text succeeded-build) => "succeeded"
+       (c/status-text failed-build) => "failed"
+       (c/status-text in-progress-build) => "inProgress")
 
 (tabular
-    (facts "determine-refresh-interval"
-           (c/determine-refresh-interval ?params) => ?expected)
+    (facts "refresh-interval"
+           (c/refresh-interval ?params) => ?expected)
     ?params               ?expected
     {"refresh" nil}       c/default-refresh-interval
     {"refresh" "30"}      30
@@ -32,24 +26,30 @@
 
 (fact "there are no missing favicons"
       (let [filenames-in-public-directory (map str (.list (io/file (io/resource "public"))))
-            required-favicon-filenames (map c/background-colour-key->favicon-filename (keys c/background-colours))]
+            required-favicon-filenames (map c/favicon-filename c/states)]
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
 (facts "about generating html"
        (let [build {:result "succeeded" :buildNumber "2015.12.17.04"}
              successful-build-html (c/generate-html build succeeded-build "great commit" 20)]
-         (fact "build status is displayed"
-               successful-build-html => (contains "succeeded"))
          (fact "build number is displayed"
                successful-build-html => (contains "2015.12.17.04"))
          (fact "commit message is displayed"
                successful-build-html => (contains "great commit"))
          (fact "favicon filename is included in link tag"
-               successful-build-html => (contains "<link rel=\"shortcut icon\" href=\"favicon_green.ico\" />"))
-         (fact "body has a green background"
-               successful-build-html => (contains "<body style=\"background-color:green;\">"))
-         (fact "font colour is white"
-               successful-build-html => (contains "<h1 style=\"color:white;font-size:400%;text-align:center;\">")))
+               successful-build-html => (contains "<link href=\"favicon_succeeded.ico\"")))
+
+       (tabular
+         (fact "correct status is displayed, correct favicon is used, body has correct css class"
+               (let [html-string (c/generate-html ?build ?previous :anything :anything)]
+                 html-string => (contains (str "<h1 class=\"status\">" ?status-text "</h1>"))
+                 html-string => (contains (str  "<link href=\"favicon_" ?state ".ico\""))
+                 html-string => (contains (str "body class=\"" ?state))))
+         ?build             ?previous         ?status-text   ?state
+         succeeded-build    :anything         "succeeded"    "succeeded"
+         failed-build       :anything         "failed"       "failed"
+         in-progress-build  succeeded-build   "inProgress"   "in-progress"
+         in-progress-build  failed-build      "inProgress"   "in-progress-after-failed")
 
        (fact "refresh html script tags are generated when refresh value is passed"
              (c/generate-html succeeded-build succeeded-build "commit" 20) => (contains "refreshSeconds = 20")
