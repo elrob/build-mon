@@ -25,4 +25,3 @@ Visit [localhost:3000](http://localhost:3000)
 Run tests:
 
     lein midje [:autotest]
-
