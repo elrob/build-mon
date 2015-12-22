@@ -71,7 +71,7 @@
              :body (json/parse-string true) :value)
          (catch Exception e))))
 
-(defn handler [account project token request]
+(defn index [account project token request]
   (let [[build previous-build] (get-last-two-builds account project token)
         commit-message (get-commit-message account token build)
         refresh (refresh-interval (:query-params request))]
@@ -87,10 +87,20 @@
        :headers {"Content-Type" "text/html; charset=utf-8"}
        :body (generate-html build previous-build commit-message refresh)})))
 
+(defn handlers [account project token]
+  {:index (partial index account project token)})
+
+(defn wrap-routes [handlers]
+  (fn [request]
+    (let [uri (:uri request)
+          handler (when (= uri "/") (:index handlers))]
+      (when handler (handler request)))))
+
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)
-      (let [wrapped-handler (-> (partial handler vso-account vso-project vso-personal-access-token)
+      (let [wrapped-handler (-> (handlers vso-account vso-project vso-personal-access-token)
+                                wrap-routes
                                 (resource/wrap-resource "public")
                                 (params/wrap-params))]
         (ring-jetty/run-jetty wrapped-handler {:port port}))
