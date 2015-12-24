@@ -23,8 +23,8 @@
         (and (in-progress? build) (not (succeeded? previous-build))) :in-progress-after-failed
         :default :failed))
 
-(defn favicon-filename [state]
-  (str "favicon_" (name state) ".ico"))
+(defn favicon-path [state]
+  (str "/favicon_" (name state) ".ico"))
 
 (defn status-text [build]
   (if (in-progress? build) (:status build) (:result build)))
@@ -47,10 +47,10 @@
     (hiccup/html
       [:head
        [:title "Build Status"]
-       [:link {:rel "shortcut icon" :href (favicon-filename state)}]
-       [:link {:rel "stylesheet ":href "style.css" :type "text/css"}]
+       [:link {:rel "shortcut icon" :href (favicon-path state)}]
+       [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]
        (when refresh (list [:script (str "window.refreshSeconds = " refresh ";")]
-                           [:script {:src "refresh.js" :defer "defer"}]))]
+                           [:script {:src "/refresh.js" :defer "defer"}]))]
       [:body {:class state}
        [:h1.status (status-text build)]
        [:h1.build-number (:buildNumber build)]
@@ -72,8 +72,35 @@
              :body (json/parse-string true) :value)
          (catch Exception e))))
 
-(defn index [account project token request]
+(defn build-screen [account project token request]
   (let [[build previous-build] (get-last-two-builds account project token)
+        commit-message (get-commit-message account token build)
+        refresh (refresh-interval (:query-params request))]
+    (prn "--------------------------------------")
+    (prn (str "Commit message: " commit-message))
+    (prn (str "Build - Result: " (:result build)))
+    (prn (str "Build - Status: " (:status build)))
+    (prn (str "Prev  - Result: " (:result build)))
+    (prn (str "Prev  - Status: " (:status build)))
+    (prn "--------------------------------------")
+    (when build
+      {:status 200
+       :headers {"Content-Type" "text/html; charset=utf-8"}
+       :body (generate-html build previous-build commit-message refresh)})))
+
+(defn get-last-two-builds-by-definition-id [account project token build-definition-id]
+  (let [last-two-builds-url (str "https://" account  ".visualstudio.com/defaultcollection/"
+                                 project "/_apis/build/builds?api-version=2.0&$top=2"
+                                 "&definitions=" build-definition-id)
+        _ (prn last-two-builds-url)
+        ]
+    (try (-> (client/get last-two-builds-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
+             :body (json/parse-string true) :value)
+         (catch Exception e))))
+
+(defn build-definition-screen [account project token request]
+  (let [build-definition-id (-> request :route-params :build-definition-id)
+        [build previous-build] (get-last-two-builds-by-definition-id account project token build-definition-id)
         commit-message (get-commit-message account token build)
         refresh (refresh-interval (:query-params request))]
     (prn "--------------------------------------")
@@ -98,7 +125,10 @@
         (handler (merge request (select-keys route-m [:route-params])))))))
 
 (defn handlers [account project token]
-  {:index (partial index account project token)})
+  {:index
+   (partial build-screen account project token)
+   :build-definition
+   (partial build-definition-screen account project token)})
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]

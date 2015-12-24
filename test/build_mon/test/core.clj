@@ -26,7 +26,8 @@
 
 (fact "there are no missing favicons"
       (let [filenames-in-public-directory (map str (.list (io/file (io/resource "public"))))
-            required-favicon-filenames (map c/favicon-filename c/states)]
+            required-favicon-paths (map c/favicon-path c/states)
+            required-favicon-filenames (map #(.substring % 1) required-favicon-paths)]
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
 (facts "about generating html"
@@ -34,7 +35,7 @@
          (fact "correct status is displayed, correct favicon is used, body has correct css class"
                (let [html-string (c/generate-html ?build ?previous :anything :anything)]
                  html-string => (contains (str "<h1 class=\"status\">" ?status-text "</h1>"))
-                 html-string => (contains (str  "<link href=\"favicon_" ?state ".ico\""))
+                 html-string => (contains (str  "<link href=\"/favicon_" ?state ".ico\""))
                  html-string => (contains (str "body class=\"" ?state))))
          ?build             ?previous         ?status-text   ?state
          succeeded-build    :anything         "succeeded"    "succeeded"
