@@ -2,6 +2,7 @@
   (:require [ring.adapter.jetty :as ring-jetty]
             [ring.middleware.resource :as resource]
             [ring.middleware.params :as params]
+            [bidi.bidi :as bidi]
             [clj-http.client :as client]
             [cheshire.core :as json]
             [hiccup.core :as hiccup])
@@ -87,14 +88,17 @@
        :headers {"Content-Type" "text/html; charset=utf-8"}
        :body (generate-html build previous-build commit-message refresh)})))
 
-(defn handlers [account project token]
-  {:index (partial index account project token)})
+(def routes ["/" {"" :index
+                  ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition}])
 
 (defn wrap-routes [handlers]
   (fn [request]
-    (let [uri (:uri request)
-          handler (when (= uri "/") (:index handlers))]
-      (when handler (handler request)))))
+    (when-let [route-m (bidi/match-route routes (:uri request))]
+      (when-let [handler (-> route-m :handler handlers)]
+        (handler (merge request (select-keys route-m [:route-params])))))))
+
+(defn handlers [account project token]
+  {:index (partial index account project token)})
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
