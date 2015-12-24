@@ -42,15 +42,17 @@
       (tryparse-refresh refresh)
       default-refresh-interval)))
 
-(defn generate-html [build previous-build commit-message refresh]
+(defn generate-build-monitor-html [build previous-build commit-message refresh-info]
   (let [state (get-state build previous-build)]
     (hiccup/html
       [:head
        [:title "Build Status"]
        [:link {:rel "shortcut icon" :href (favicon-path state)}]
        [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]
-       (when refresh (list [:script (str "window.refreshSeconds = " refresh ";")]
-                           [:script {:src "/refresh.js" :defer "defer"}]))]
+       (when refresh-info (list [:script
+                                 (str "window.refreshPath = \"" (:refresh-path refresh-info) "\";")
+                                 (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
+                                [:script {:src "/refresh.js" :defer "defer"}]))]
       [:body {:class state}
        [:h1.status (status-text build)]
        [:h1.build-number (:buildNumber build)]
@@ -65,55 +67,49 @@
              :body (json/parse-string true) :comment)
          (catch Exception e))))
 
-(defn get-last-two-builds [account project token]
+(defn get-last-two-builds [account project token build-definition-id]
   (let [last-two-builds-url (str "https://" account  ".visualstudio.com/defaultcollection/"
-                                 project "/_apis/build/builds?api-version=2.0&$top=2")]
+                                 project "/_apis/build/builds?api-version=2.0&$top=2"
+                                 "&definitions=" build-definition-id)]
     (try (-> (client/get last-two-builds-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
              :body (json/parse-string true) :value)
          (catch Exception e))))
 
-(defn build-screen [account project token request]
-  (let [[build previous-build] (get-last-two-builds account project token)
-        commit-message (get-commit-message account token build)
-        refresh (refresh-interval (:query-params request))]
-    (prn "--------------------------------------")
-    (prn (str "Commit message: " commit-message))
-    (prn (str "Build - Result: " (:result build)))
-    (prn (str "Build - Status: " (:status build)))
-    (prn (str "Prev  - Result: " (:result build)))
-    (prn (str "Prev  - Status: " (:status build)))
-    (prn "--------------------------------------")
-    (when build
-      {:status 200
-       :headers {"Content-Type" "text/html; charset=utf-8"}
-       :body (generate-html build previous-build commit-message refresh)})))
-
-(defn get-last-two-builds-by-definition-id [account project token build-definition-id]
-  (let [last-two-builds-url (str "https://" account  ".visualstudio.com/defaultcollection/"
-                                 project "/_apis/build/builds?api-version=2.0&$top=2"
-                                 "&definitions=" build-definition-id)
-        _ (prn last-two-builds-url)
-        ]
-    (try (-> (client/get last-two-builds-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
+(defn get-build-definitions [account project token]
+  (let [build-definitions-url (str "https://" account  ".visualstudio.com/defaultcollection/"
+                                   project "/_apis/build/definitions?api-version=2.0")]
+    (try (-> (client/get build-definitions-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
              :body (json/parse-string true) :value)
          (catch Exception e))))
 
 (defn build-definition-screen [account project token request]
   (let [build-definition-id (-> request :route-params :build-definition-id)
-        [build previous-build] (get-last-two-builds-by-definition-id account project token build-definition-id)
+        [build previous-build] (get-last-two-builds account project token build-definition-id)
         commit-message (get-commit-message account token build)
-        refresh (refresh-interval (:query-params request))]
-    (prn "--------------------------------------")
-    (prn (str "Commit message: " commit-message))
-    (prn (str "Build - Result: " (:result build)))
-    (prn (str "Build - Status: " (:status build)))
-    (prn (str "Prev  - Result: " (:result build)))
-    (prn (str "Prev  - Status: " (:status build)))
-    (prn "--------------------------------------")
+        refresh-interval (refresh-interval (:query-params request))
+        refresh-info (when refresh-interval
+                       {:refresh-interval refresh-interval
+                        :refresh-path (:uri request)})]
     (when build
       {:status 200
        :headers {"Content-Type" "text/html; charset=utf-8"}
-       :body (generate-html build previous-build commit-message refresh)})))
+       :body (generate-build-monitor-html build previous-build commit-message refresh-info)})))
+
+(defn generate-index-html [build-definitions]
+  (hiccup/html
+    [:head
+     [:title "Choose the Build"]]
+    [:body
+     [:ul (for [definition build-definitions]
+            [:li
+             [:a {:href (str "/build-definitions/" (:id definition))} (:name definition)]])]]))
+
+(defn index [account project token request]
+  (let [build-definitions (get-build-definitions account project token)]
+    (when (> (count build-definitions) 0)
+      {:status 200
+       :headers {"Content-Type" "text/html; charset=utf-8"}
+       :body (generate-index-html build-definitions)})))
 
 (def routes ["/" {"" :index
                   ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition}])
@@ -126,7 +122,7 @@
 
 (defn handlers [account project token]
   {:index
-   (partial build-screen account project token)
+   (partial index account project token)
    :build-definition
    (partial build-definition-screen account project token)})
 

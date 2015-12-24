@@ -3,9 +3,9 @@
   :url "localhost:3000"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
                  [ring/ring-jetty-adapter "1.4.0"]
-                 [bidi "1.20.3"]
+                 [bidi "1.24.0"]
                  [clj-http "2.0.0"]
                  [cheshire "5.5.0"]
                  [hiccup "1.0.5"]]
