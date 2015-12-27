@@ -32,11 +32,11 @@
 
 (facts "about generating build monitor html"
        (tabular
-         (fact "correct status is displayed, correct favicon is used, body has correct css class"
+         (fact "correct status is displayed, correct favicon is used, build-panel has correct css class"
                (let [html-string (c/generate-build-monitor-html ?build ?previous :anything :anything)]
                  html-string => (contains (str "<h1 class=\"status\">" ?status-text "</h1>"))
                  html-string => (contains (str  "<link href=\"/favicon_" ?state ".ico\""))
-                 html-string => (contains (str "body class=\"" ?state))))
+                 html-string => (contains (str "div class=\"build-panel " ?state))))
          ?build             ?previous         ?status-text   ?state
          succeeded-build    :anything         "succeeded"    "succeeded"
          failed-build       :anything         "failed"       "failed"
