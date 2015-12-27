@@ -53,7 +53,7 @@
          (fact "commit message is displayed"
                successful-build-html => (contains "great commit"))
          (fact "refreshPath value is set"
-               successful-build-html => (contains "<script>window.refreshPath = \"/build-definitions/10\";"))
+               successful-build-html => (contains "<script>window.refreshPath = \"/ajax/build-definitions/10\";"))
          (fact "refreshSeconds value is set"
                successful-build-html => (contains "window.refreshSeconds = 60;"))
          (fact "refresh.js is included"

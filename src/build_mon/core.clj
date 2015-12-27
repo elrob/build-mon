@@ -60,7 +60,7 @@
        [:link {:rel "shortcut icon" :href favicon-path}]
        [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]
        (when refresh-info (list [:script
-                                 (str "window.refreshPath = \"" (:refresh-path refresh-info) "\";")
+                                 (str "window.refreshPath = \"/ajax" (:refresh-path refresh-info) "\";")
                                  (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
                                 [:script {:src "/refresh.js" :defer "defer"}]))]
       [:body
