@@ -7,10 +7,10 @@
 (def in-progress-build {:result nil :status "inProgress"})
 (def failed-build      {:result "failed"})
 
-(facts "status-text"
-       (c/status-text succeeded-build) => "succeeded"
-       (c/status-text failed-build) => "failed"
-       (c/status-text in-progress-build) => "inProgress")
+(facts "get-status-text"
+       (c/get-status-text succeeded-build) => "succeeded"
+       (c/get-status-text failed-build) => "failed"
+       (c/get-status-text in-progress-build) => "inProgress")
 
 (tabular
     (facts "refresh-interval"
@@ -26,7 +26,7 @@
 
 (fact "there are no missing favicons"
       (let [filenames-in-public-directory (map str (.list (io/file (io/resource "public"))))
-            required-favicon-paths (map c/favicon-path c/states)
+            required-favicon-paths (map c/get-favicon-path c/states)
             required-favicon-filenames (map #(.substring % 1) required-favicon-paths)]
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
@@ -73,3 +73,26 @@
          (fact "includes links to monitor each build definition"
                html => (contains "href=\"/build-definitions/10\"")
                html => (contains "href=\"/build-definitions/20\""))))
+
+(facts "about generating-build-definition-data"
+       (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build"}}]
+         (c/generate-build-definition-data build succeeded-build "great commit")
+         => {:build-definition-name "My CI Build"
+             :build-number "2015.12.17.04"
+             :commit-message "great commit"
+             :status-text "succeeded"
+             :state "succeeded"
+             :favicon-path "/favicon_succeeded.ico"})
+
+       (tabular
+         (fact "correct status-text, state and favicon-path are set based on current and previous build"
+               (let [build-definition-data (c/generate-build-definition-data ?build ?previous "commit message")]
+                 (:status-text build-definition-data) => ?status-text
+                 (:state build-definition-data) => ?state
+                 (:favicon-path build-definition-data) => (str "/favicon_" ?state ".ico")))
+         ?build             ?previous         ?status-text   ?state
+         succeeded-build    :any              "succeeded"    "succeeded"
+         failed-build       :any              "failed"       "failed"
+         in-progress-build  succeeded-build   "inProgress"   "in-progress"
+         in-progress-build  failed-build      "inProgress"   "in-progress-after-failed"))
+

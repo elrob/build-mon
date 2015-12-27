@@ -23,10 +23,10 @@
         (and (in-progress? build) (not (succeeded? previous-build))) :in-progress-after-failed
         :default :failed))
 
-(defn favicon-path [state]
+(defn get-favicon-path [state]
   (str "/favicon_" (name state) ".ico"))
 
-(defn status-text [build]
+(defn get-status-text [build]
   (if (in-progress? build) (:status build) (:result build)))
 
 (defn tryparse-refresh [refresh-interval-string]
@@ -42,22 +42,32 @@
       (tryparse-refresh refresh)
       default-refresh-interval)))
 
-(defn generate-build-monitor-html [build previous-build commit-message refresh-info]
+(defn generate-build-definition-data [build previous-build commit-message]
   (let [state (get-state build previous-build)]
+    {:build-definition-name (-> build :definition :name)
+     :build-number (:buildNumber build)
+     :commit-message commit-message
+     :status-text (get-status-text build)
+     :state (name state)
+     :favicon-path (get-favicon-path state)}))
+
+(defn generate-build-monitor-html [build previous-build commit-message refresh-info]
+  (let [{:keys [build-definition-name build-number status-text state favicon-path]}
+        (generate-build-definition-data build previous-build commit-message)]
     (hiccup/html
       [:head
        [:title "Build Status"]
-       [:link {:rel "shortcut icon" :href (favicon-path state)}]
+       [:link {:rel "shortcut icon" :href favicon-path}]
        [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]
        (when refresh-info (list [:script
                                  (str "window.refreshPath = \"" (:refresh-path refresh-info) "\";")
                                  (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
                                 [:script {:src "/refresh.js" :defer "defer"}]))]
       [:body
-       [:div {:class (str "build-panel " (name state))}
-        [:h1.status (status-text build)]
-        [:h1.build-definition-name (-> build :definition :name)]
-        [:h1.build-number (:buildNumber build)]
+       [:div {:class (str "build-panel " state)}
+        [:h1.status status-text]
+        [:h1.build-definition-name build-definition-name]
+        [:h1.build-number build-number]
         [:div.commit-message commit-message]]])))
 
 (defn get-commit-message [account token build]
@@ -97,6 +107,15 @@
        :headers {"Content-Type" "text/html; charset=utf-8"}
        :body (generate-build-monitor-html build previous-build commit-message refresh-info)})))
 
+(defn build-definition-data [account project token request]
+  (let [build-definition-id (-> request :route-params :build-definition-id)
+        [build previous-build] (get-last-two-builds account project token build-definition-id)
+        commit-message (get-commit-message account token build)]
+    (when build
+      {:status 200
+       :headers {"Content-Type" "application/json"}
+       :body (json/generate-string (generate-build-definition-data build previous-build commit-message))})))
+
 (defn generate-index-html [build-definitions]
   (hiccup/html
     [:head
@@ -114,7 +133,8 @@
        :body (generate-index-html build-definitions)})))
 
 (def routes ["/" {"" :index
-                  ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition}])
+                  ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition
+                  ["ajax/build-definitions/" [#"\d+" :build-definition-id]] :build-definition-data}])
 
 (defn wrap-routes [handlers]
   (fn [request]
@@ -126,7 +146,9 @@
   {:index
    (partial index account project token)
    :build-definition
-   (partial build-definition-screen account project token)})
+   (partial build-definition-screen account project token)
+   :build-definition-data
+   (partial build-definition-data account project token)})
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
