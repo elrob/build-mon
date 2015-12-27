@@ -43,9 +43,11 @@
          in-progress-build  succeeded-build   "inProgress"   "in-progress"
          in-progress-build  failed-build      "inProgress"   "in-progress-after-failed")
 
-       (let [build {:result "succeeded" :buildNumber "2015.12.17.04"}
+       (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build"}}
              refresh-info {:refresh-path "/build-definitions/10" :refresh-interval 60}
              successful-build-html (c/generate-build-monitor-html build succeeded-build "great commit" refresh-info)]
+         (fact "build definition name is displayed"
+               successful-build-html => (contains "My CI Build"))
          (fact "build number is displayed"
                successful-build-html => (contains "2015.12.17.04"))
          (fact "commit message is displayed"

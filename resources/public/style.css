@@ -26,6 +26,10 @@ body{
   font-size: 400%;
 }
 
+.build-definition-name{
+  font-size: 300%;
+}
+
 .build-number{
   font-size: 300%;
 }

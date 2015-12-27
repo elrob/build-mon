@@ -55,6 +55,7 @@
                                 [:script {:src "/refresh.js" :defer "defer"}]))]
       [:body {:class state}
        [:h1.status (status-text build)]
+       [:h1.build-definition-name (-> build :definition :name)]
        [:h1.build-number (:buildNumber build)]
        [:div.commit-message commit-message]])))
 
