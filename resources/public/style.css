@@ -19,6 +19,11 @@ a{
   width: 50%;
 }
 
+.panel-count-3 .build-panel{
+    width: 33.33%;
+    width: calc(100% / 3);
+}
+
 .build-panel > h1:first-child{
   margin-top: 0;
 }

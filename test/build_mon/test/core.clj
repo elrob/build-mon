@@ -111,7 +111,7 @@
              html (c/generate-index-html build-info-maps)]
          html => (contains "<title>")
          html => (contains "style.css")
-         (fact "body includes a build-definition count class"
+         (fact "body includes a panel-count class"
               html => (contains "<body class=\"panel-count-2\""))
          (fact "includes names of build definitions"
                html => (contains "BD1")
@@ -121,5 +121,10 @@
                html => (contains "break things"))
          (fact "includes links to monitor each build definition"
                html => (contains "href=\"/build-definitions/10\"")
-               html => (contains "href=\"/build-definitions/20\""))))
+               html => (contains "href=\"/build-definitions/20\"")))
 
+       (fact "body includes a panel-count class with the correct number of build definitions"
+            (c/generate-index-html [1]) => (contains "panel-count-1")
+            (c/generate-index-html [1 2]) => (contains "panel-count-2")
+            (c/generate-index-html [1 2 3]) => (contains "panel-count-3")
+            (c/generate-index-html [1 2 3 4]) => (contains "panel-count-4")))
