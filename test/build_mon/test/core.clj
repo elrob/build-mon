@@ -31,53 +31,50 @@
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
 (facts "about generating build monitor html"
-       (tabular
-         (fact "correct status is displayed, correct favicon is used, build-panel has correct css class"
-               (let [html-string (c/generate-build-monitor-html ?build ?previous :anything :anything)]
-                 html-string => (contains (str "<h1 class=\"status\">" ?status-text "</h1>"))
-                 html-string => (contains (str  "<link href=\"/favicon_" ?state ".ico\""))
-                 html-string => (contains (str "div class=\"build-panel " ?state))))
-         ?build             ?previous         ?status-text   ?state
-         succeeded-build    :anything         "succeeded"    "succeeded"
-         failed-build       :anything         "failed"       "failed"
-         in-progress-build  succeeded-build   "inProgress"   "in-progress"
-         in-progress-build  failed-build      "inProgress"   "in-progress-after-failed")
+       (let [status-text "inProgress"
+             state "in-progress-after-failed"
+             build-definition-name "My CI Build"
+             build-number "2015.12.17.04"
+             commit-message "great commit"
+             favicon-path "/favicon_in-progress-after-failed.ico"
+             build-info {:status-text status-text
+                         :state state
+                         :build-definition-name build-definition-name
+                         :build-number build-number
+                         :commit-message commit-message
+                         :favicon-path favicon-path}
+             html-string (c/generate-build-monitor-html build-info :anything)]
+         (fact "build status is displayed"
+               html-string => (contains (str "<h1 class=\"status\">" status-text "</h1>")))
+         (fact "favicon is included"
+               html-string => (contains (str  "<link href=\"" favicon-path "\"")))
+         (fact "build-panel has state as a css-class"
+               html-string => (contains (str "div class=\"build-panel " state)))
+         (fact "build definition name is displayed"
+               html-string => (contains build-definition-name))
+         (fact "build number is displayed"
+               html-string => (contains build-number))
+         (fact "commit message is displayed"
+               html-string => (contains commit-message)))
 
        (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build"}}
              refresh-info {:refresh-path "/build-definitions/10" :refresh-interval 60}
-             successful-build-html (c/generate-build-monitor-html build succeeded-build "great commit" refresh-info)]
-         (fact "build definition name is displayed"
-               successful-build-html => (contains "My CI Build"))
-         (fact "build number is displayed"
-               successful-build-html => (contains "2015.12.17.04"))
-         (fact "commit message is displayed"
-               successful-build-html => (contains "great commit"))
+             html-string (c/generate-build-monitor-html :anything refresh-info)]
          (fact "refreshPath value is set"
-               successful-build-html => (contains "<script>window.refreshPath = \"/ajax/build-definitions/10\";"))
+               html-string => (contains "<script>window.refreshPath = \"/ajax/build-definitions/10\";"))
          (fact "refreshSeconds value is set"
-               successful-build-html => (contains "window.refreshSeconds = 60;"))
+               html-string => (contains "window.refreshSeconds = 60;"))
          (fact "refresh.js is included"
-               successful-build-html => (contains "src=\"/refresh.js\"")))
+               html-string => (contains "src=\"/refresh.js\"")))
 
        (fact "refresh script is not included if refresh info is nil"
-             (c/generate-build-monitor-html succeeded-build succeeded-build "commit" :anything nil)
-             =not=> (contains "script")))
+             (c/generate-build-monitor-html :anything nil) =not=> (contains "script")))
 
-(facts "about generating index html"
-       (let [html (c/generate-index-html [{:name "BD1" :id 10} {:name "BD2" :id 20}])]
-         html => (contains "<title>")
-         html => (contains "<body>")
-         (fact "includes names of build definitions"
-               html => (contains "BD1")
-               html => (contains "BD2"))
-         (fact "includes links to monitor each build definition"
-               html => (contains "href=\"/build-definitions/10\"")
-               html => (contains "href=\"/build-definitions/20\""))))
-
-(facts "about generating-build-definition-data"
-       (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build"}}]
-         (c/generate-build-definition-data build succeeded-build "great commit")
+(facts "about generating-build-info"
+       (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build" :id "10"}}]
+         (c/generate-build-info build succeeded-build "great commit")
          => {:build-definition-name "My CI Build"
+             :build-definition-id "10"
              :build-number "2015.12.17.04"
              :commit-message "great commit"
              :status-text "succeeded"
@@ -86,13 +83,43 @@
 
        (tabular
          (fact "correct status-text, state and favicon-path are set based on current and previous build"
-               (let [build-definition-data (c/generate-build-definition-data ?build ?previous "commit message")]
-                 (:status-text build-definition-data) => ?status-text
-                 (:state build-definition-data) => ?state
-                 (:favicon-path build-definition-data) => (str "/favicon_" ?state ".ico")))
+               (let [build-info (c/generate-build-info ?build ?previous "commit message")]
+                 (:status-text build-info) => ?status-text
+                 (:state build-info) => ?state
+                 (:favicon-path build-info) => (str "/favicon_" ?state ".ico")))
          ?build             ?previous         ?status-text   ?state
          succeeded-build    :any              "succeeded"    "succeeded"
          failed-build       :any              "failed"       "failed"
          in-progress-build  succeeded-build   "inProgress"   "in-progress"
          in-progress-build  failed-build      "inProgress"   "in-progress-after-failed"))
+
+(facts "about generating index html"
+       (let [build-info-maps [{:build-definition-name "BD1"
+                               :build-definition-id "10"
+                               :build-number "2015.12.23.03"
+                               :commit-message "change things"
+                               :status-text "succeeded"
+                               :state "succeeded"
+                               :favicon-path "/favicon_succeeded.ico"}
+                              {:build-definition-name "BD2"
+                               :build-definition-id "20"
+                               :build-number "403"
+                               :commit-message "break things"
+                               :status-text "failed"
+                               :state "failed"
+                               :favicon-path "/favicon_failed.ico"}]
+             html (c/generate-index-html build-info-maps)]
+         html => (contains "<title>")
+         html => (contains "style.css")
+         (fact "body includes a build-definition count class"
+              html => (contains "<body class=\"panel-count-2\""))
+         (fact "includes names of build definitions"
+               html => (contains "BD1")
+               html => (contains "BD2"))
+         (fact "included commit messages from build definitions"
+               html => (contains "change things")
+               html => (contains "break things"))
+         (fact "includes links to monitor each build definition"
+               html => (contains "href=\"/build-definitions/10\"")
+               html => (contains "href=\"/build-definitions/20\""))))
 

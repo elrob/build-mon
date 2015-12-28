@@ -42,35 +42,38 @@
       (tryparse-refresh refresh)
       default-refresh-interval)))
 
-(defn generate-build-definition-data [build previous-build commit-message]
+(defn generate-build-info [build previous-build commit-message]
   (let [state (get-state build previous-build)]
     {:build-definition-name (-> build :definition :name)
+     :build-definition-id (-> build :definition :id)
      :build-number (:buildNumber build)
      :commit-message commit-message
      :status-text (get-status-text build)
      :state (name state)
      :favicon-path (get-favicon-path state)}))
 
-(defn generate-build-monitor-html [build previous-build commit-message refresh-info]
-  (let [{:keys [build-definition-name build-number status-text state favicon-path]}
-        (generate-build-definition-data build previous-build commit-message)]
-    (hiccup/html
-      [:head
-       [:title "Build Status"]
-       [:link {:rel "shortcut icon" :href favicon-path}]
-       [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]
-       (when refresh-info (list [:script
-                                 (str "window.refreshPath = \"/ajax" (:refresh-path refresh-info) "\";")
-                                 (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
-                                [:script {:src "/refresh.js" :defer "defer"}]))]
-      [:body
-       [:div {:class (str "build-panel " state)}
-        [:h1.status status-text]
-        [:h1.build-definition-name build-definition-name]
-        [:h1.build-number build-number]
-        [:div.commit-message commit-message]]])))
+(defn generate-build-panel [{:keys [build-definition-name build-definition-id build-number
+                                    status-text state commit-message]}]
+  [:a {:href (str "/build-definitions/" build-definition-id)}
+   [:div {:class (str "build-panel " state)}
+    [:h1.status status-text]
+    [:h1.build-definition-name build-definition-name]
+    [:h1.build-number build-number]
+    [:div.commit-message commit-message]]])
 
-(defn get-commit-message [account token build]
+(defn generate-build-monitor-html [build-info refresh-info]
+  (hiccup/html
+    [:head
+     [:title "Build Status"]
+     [:link {:rel "shortcut icon" :href (:favicon-path build-info)}]
+     [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]
+     (when refresh-info (list [:script
+                               (str "window.refreshPath = \"/ajax" (:refresh-path refresh-info) "\";")
+                               (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
+                              [:script {:src "/refresh.js" :defer "defer"}]))]
+    [:body (generate-build-panel build-info)]))
+
+(defn retrieve-commit-message [account token build]
   (let [repository-id (-> build :repository :id)
         source-version (:sourceVersion build)
         commit-url (str "https://" account ".visualstudio.com/defaultcollection/_apis/git/repositories/"
@@ -79,7 +82,7 @@
              :body (json/parse-string true) :comment)
          (catch Exception e))))
 
-(defn get-last-two-builds [account project token build-definition-id]
+(defn retrieve-last-two-builds [account project token build-definition-id]
   (let [last-two-builds-url (str "https://" account  ".visualstudio.com/defaultcollection/"
                                  project "/_apis/build/builds?api-version=2.0&$top=2"
                                  "&definitions=" build-definition-id)]
@@ -87,54 +90,61 @@
              :body (json/parse-string true) :value)
          (catch Exception e))))
 
-(defn get-build-definitions [account project token]
+(defn retrieve-build-definitions [account project token]
   (let [build-definitions-url (str "https://" account  ".visualstudio.com/defaultcollection/"
                                    project "/_apis/build/definitions?api-version=2.0")]
     (try (-> (client/get build-definitions-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
              :body (json/parse-string true) :value)
          (catch Exception e))))
 
+(defn retrieve-build-info [account project token build-definition-id]
+  (let [[build previous-build] (retrieve-last-two-builds account project token build-definition-id)
+        commit-message (retrieve-commit-message account token build)]
+    (when build
+      (generate-build-info build previous-build commit-message))))
+
 (defn build-definition-screen [account project token request]
   (let [build-definition-id (-> request :route-params :build-definition-id)
-        [build previous-build] (get-last-two-builds account project token build-definition-id)
-        commit-message (get-commit-message account token build)
+        build-info (retrieve-build-info account project token build-definition-id)
         refresh-interval (refresh-interval (:query-params request))
         refresh-info (when refresh-interval
                        {:refresh-interval refresh-interval
                         :refresh-path (:uri request)})]
-    (when build
+    (when build-info
       {:status 200
        :headers {"Content-Type" "text/html; charset=utf-8"}
-       :body (generate-build-monitor-html build previous-build commit-message refresh-info)})))
+       :body (generate-build-monitor-html build-info refresh-info)})))
 
-(defn build-definition-data [account project token request]
+(defn build-info [account project token request]
   (let [build-definition-id (-> request :route-params :build-definition-id)
-        [build previous-build] (get-last-two-builds account project token build-definition-id)
-        commit-message (get-commit-message account token build)]
-    (when build
+        build-info (retrieve-build-info account project token build-definition-id)]
+    (when build-info
       {:status 200
        :headers {"Content-Type" "application/json"}
-       :body (json/generate-string (generate-build-definition-data build previous-build commit-message))})))
+       :body (json/generate-string build-info)})))
 
-(defn generate-index-html [build-definitions]
+(defn generate-index-html [build-info-maps]
   (hiccup/html
     [:head
-     [:title "Choose the Build"]]
-    [:body
-     [:ul (for [definition build-definitions]
-            [:li
-             [:a {:href (str "/build-definitions/" (:id definition))} (:name definition)]])]]))
+     [:title "Build Monitor"]
+     [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
+    [:body {:class (str "panel-count-" (count build-info-maps))}
+     (map generate-build-panel build-info-maps)]))
+
+(defn build-definition->build-info [account project token build-definition]
+  (retrieve-build-info account project token (:id build-definition)))
 
 (defn index [account project token request]
-  (let [build-definitions (get-build-definitions account project token)]
+  (let [build-definitions (retrieve-build-definitions account project token)]
     (when (> (count build-definitions) 0)
-      {:status 200
-       :headers {"Content-Type" "text/html; charset=utf-8"}
-       :body (generate-index-html build-definitions)})))
+      (let [build-info-maps (map (partial build-definition->build-info account project token) build-definitions)]
+        {:status 200
+         :headers {"Content-Type" "text/html; charset=utf-8"}
+         :body (generate-index-html build-info-maps)}))))
 
 (def routes ["/" {"" :index
                   ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition
-                  ["ajax/build-definitions/" [#"\d+" :build-definition-id]] :build-definition-data}])
+                  ["ajax/build-definitions/" [#"\d+" :build-definition-id]] :build-info}])
 
 (defn wrap-routes [handlers]
   (fn [request]
@@ -147,8 +157,8 @@
    (partial index account project token)
    :build-definition
    (partial build-definition-screen account project token)
-   :build-definition-data
-   (partial build-definition-data account project token)})
+   :build-info
+   (partial build-info account project token)})
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
