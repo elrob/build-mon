@@ -17,16 +17,19 @@ a{
 
 .panel-count-2 .build-panel{
   width: 50%;
+  font-size: smaller;
 }
 
 .panel-count-3 .build-panel{
   width: 33.33%;
   width: calc(100% / 3);
+  font-size: smaller;
 }
 
 .panel-count-4 .build-panel{
   width: 50%;
   height: 50%;
+  font-size: smaller;
 }
 
 .build-panel > h1:first-child{
