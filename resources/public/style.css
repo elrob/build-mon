@@ -20,8 +20,13 @@ a{
 }
 
 .panel-count-3 .build-panel{
-    width: 33.33%;
-    width: calc(100% / 3);
+  width: 33.33%;
+  width: calc(100% / 3);
+}
+
+.panel-count-4 .build-panel{
+  width: 50%;
+  height: 50%;
 }
 
 .build-panel > h1:first-child{
