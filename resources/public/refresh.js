@@ -1,10 +1,10 @@
-function updateBuildPanel(buildData) {
+function updateBuildPanel(buildPanel, buildData) {
   document.querySelector("link[rel='shortcut icon'").setAttribute("href", buildData["favicon-path"])
-  document.getElementsByClassName("build-panel")[0].className = "build-panel " + buildData["state"];
-  document.getElementsByClassName("status")[0].innerHTML = buildData["status-text"];
-  document.getElementsByClassName("build-definition-name")[0].innerHTML = buildData["build-definition-name"];
-  document.getElementsByClassName("build-number")[0].innerHTML = buildData["build-number"];
-  document.getElementsByClassName("commit-message")[0].innerHTML = buildData["commit-message"];
+  buildPanel.className = "build-panel " + buildData["state"];
+  buildPanel.getElementsByClassName("status")[0].innerHTML = buildData["status-text"];
+  buildPanel.getElementsByClassName("build-definition-name")[0].innerHTML = buildData["build-definition-name"];
+  buildPanel.getElementsByClassName("build-number")[0].innerHTML = buildData["build-number"];
+  buildPanel.getElementsByClassName("commit-message")[0].innerHTML = buildData["commit-message"];
 }
 
 function showRefreshIcon() {
@@ -30,7 +30,9 @@ function refreshBuildPanel(buildDefinitionId) {
       if (xhttp.status == 200) {
         hideErrorModal();
         var buildData = JSON.parse(xhttp.responseText);
-        updateBuildPanel(buildData);
+        var buildPanelId = "build-definition-id-" + buildDefinitionId;
+        var buildPanel = document.getElementById(buildPanelId);
+        updateBuildPanel(buildPanel, buildData);
       }
       else {
         showErrorModal();
