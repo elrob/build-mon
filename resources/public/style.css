@@ -71,3 +71,15 @@ a{
 .commit-message{
   font-size: 300%;
 }
+
+.refresh-icon{
+  z-index: 1;
+  position: absolute;
+  color: white;
+  top: 10px;
+  left: 10px;
+}
+
+.hidden{
+  display: none;
+}

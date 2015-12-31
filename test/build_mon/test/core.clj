@@ -57,18 +57,25 @@
          (fact "commit message is displayed"
                html-string => (contains commit-message)))
 
-       (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build"}}
-             refresh-info {:refresh-path "/build-definitions/10" :refresh-interval 60}
-             html-string (c/generate-build-monitor-html :anything refresh-info)]
-         (fact "refreshPath value is set"
-               html-string => (contains "<script>window.refreshPath = \"/ajax/build-definitions/10\";"))
-         (fact "refreshSeconds value is set"
-               html-string => (contains "window.refreshSeconds = 60;"))
-         (fact "refresh.js is included"
-               html-string => (contains "src=\"/refresh.js\"")))
+       (facts "with refresh info"
+              (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build"}}
+                    refresh-info {:refresh-path "/build-definitions/10" :refresh-interval 60}
+                    html-string (c/generate-build-monitor-html :anything refresh-info)]
+                (fact "refreshPath value is set"
+                      html-string => (contains "<script>window.refreshPath = \"/ajax/build-definitions/10\";"))
+                (fact "refreshSeconds value is set"
+                      html-string => (contains "window.refreshSeconds = 60;"))
+                (fact "refresh.js is included"
+                      html-string => (contains "src=\"/refresh.js\""))
+                (fact "font awesome is included"
+                      html-string => (contains "font-awesome"))))
 
-       (fact "refresh script is not included if refresh info is nil"
-             (c/generate-build-monitor-html :anything nil) =not=> (contains "script")))
+       (facts "without refresh info"
+              (let [html-string (c/generate-build-monitor-html :anything nil)]
+                (fact "refresh script is not included"
+                    html-string =not=> (contains "script"))
+                (fact "font awesome is not included"
+                    html-string =not=> (contains "font-awesome")))))
 
 (facts "about generating-build-info"
        (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build" :id "10"}}]

@@ -13,6 +13,8 @@
 (def default-refresh-interval 20)
 (def minimum-refresh-interval 5)
 
+(def refresh-icon [:div.refresh-icon.hidden [:i.fa.fa-refresh.fa-spin.fa-3x]])
+
 (defn succeeded? [build] (= (:result build) "succeeded"))
 
 (defn in-progress? [build] (nil? (:result build)))
@@ -66,12 +68,15 @@
     [:head
      [:title "Build Status"]
      [:link {:rel "shortcut icon" :href (:favicon-path build-info)}]
-     [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]
-     (when refresh-info (list [:script
-                               (str "window.refreshPath = \"/ajax" (:refresh-path refresh-info) "\";")
-                               (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
-                              [:script {:src "/refresh.js" :defer "defer"}]))]
-    [:body (generate-build-panel build-info)]))
+     (when refresh-info
+       (list [:link {:rel "stylesheet" :href
+                     "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
+             [:script
+              (str "window.refreshPath = \"/ajax" (:refresh-path refresh-info) "\";")
+              (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
+             [:script {:src "/refresh.js" :defer "defer"}]))
+     [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
+    [:body refresh-icon (generate-build-panel build-info)]))
 
 (defn retrieve-commit-message [account token build]
   (let [repository-id (-> build :repository :id)

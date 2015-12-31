@@ -7,8 +7,17 @@ function updateBuildPanel(buildData) {
   document.getElementsByClassName("commit-message")[0].innerHTML = buildData["commit-message"];
 }
 
+function showRefreshIcon() {
+  document.getElementsByClassName("refresh-icon")[0].className = "refresh-icon";
+}
+
+function hideRefreshIcon() {
+  document.getElementsByClassName("refresh-icon")[0].className = "refresh-icon hidden";
+}
+
 function refreshBuild(refreshPath) {
   return function() {
+    showRefreshIcon();
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState == 4) {
@@ -22,6 +31,7 @@ function refreshBuild(refreshPath) {
           var currentBodyElement = document.getElementsByTagName('body')[0];
           currentBodyElement.parentNode.replaceChild(updatedBodyElement, currentBodyElement);
         }
+        hideRefreshIcon();
       }
     };
     xhttp.open("GET", refreshPath, true);
