@@ -23,7 +23,7 @@ function hideErrorModal() {
   document.getElementsByClassName("error-modal")[0].className = "error-modal hidden";
 }
 
-function refreshBuildPanel(buildDefinitionId) {
+function refreshBuildPanel(buildDefinitionId, refreshArrayIndex, refreshArray) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (xhttp.readyState == 4) {
@@ -37,18 +37,22 @@ function refreshBuildPanel(buildDefinitionId) {
       else {
         showErrorModal();
       }
+      refreshArray[refreshArrayIndex] = true;
+      if (refreshArray.every(function(value){return value;})) {
+        hideRefreshIcon();
+      }
     }
   };
-  xhttp.open("GET", "/ajax/build-definitions/" + buildDefinitionId, false);
+  xhttp.open("GET", "/ajax/build-definitions/" + buildDefinitionId, true);
   xhttp.send();
 }
 
 function refreshBuild() {
   showRefreshIcon();
+  var refreshArray = window.buildDefinitionIds.map(function(){return false;});
   for (i = 0; i < window.buildDefinitionIds.length; i++) {
-    refreshBuildPanel(window.buildDefinitionIds[i]);
+    refreshBuildPanel(window.buildDefinitionIds[i], i, refreshArray);
   }
-  hideRefreshIcon();
 }
 
 window.onload=function(){

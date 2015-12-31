@@ -68,7 +68,7 @@
     [:h1.build-number build-number]
     [:div.commit-message commit-message]]])
 
-(defn generate-build-monitor-html [build-info refresh-info]
+(defn generate-build-definition-html [build-info refresh-info]
   (hiccup/html
     [:head
      [:title "Build Status"]
@@ -123,7 +123,7 @@
     (when build-info
       {:status 200
        :headers {"Content-Type" "text/html; charset=utf-8"}
-       :body (generate-build-monitor-html build-info refresh-info)})))
+       :body (generate-build-definition-html build-info refresh-info)})))
 
 (defn build-info [account project token request]
   (let [build-definition-id (-> request :route-params :build-definition-id)
@@ -133,7 +133,7 @@
        :headers {"Content-Type" "application/json"}
        :body (json/generate-string build-info)})))
 
-(defn generate-index-html [build-info-maps]
+(defn generate-build-monitor-html [build-info-maps]
   (hiccup/html
     [:head
      [:title "Build Monitor"]
@@ -144,15 +144,15 @@
 (defn build-definition->build-info [account project token build-definition]
   (retrieve-build-info account project token (:id build-definition)))
 
-(defn index [account project token request]
+(defn build-monitor [account project token request]
   (let [build-definitions (retrieve-build-definitions account project token)]
     (when (> (count build-definitions) 0)
       (let [build-info-maps (map (partial build-definition->build-info account project token) build-definitions)]
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
-         :body (generate-index-html build-info-maps)}))))
+         :body (generate-build-monitor-html build-info-maps)}))))
 
-(def routes ["/" {"" :index
+(def routes ["/" {"" :build-monitor
                   ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition
                   ["ajax/build-definitions/" [#"\d+" :build-definition-id]] :build-info}])
 
@@ -163,8 +163,8 @@
         (handler (merge request (select-keys route-m [:route-params])))))))
 
 (defn handlers [account project token]
-  {:index
-   (partial index account project token)
+  {:build-monitor
+   (partial build-monitor account project token)
    :build-definition
    (partial build-definition-screen account project token)
    :build-info

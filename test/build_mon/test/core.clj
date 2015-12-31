@@ -30,7 +30,7 @@
             required-favicon-filenames (map #(.substring % 1) required-favicon-paths)]
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
-(facts "about generating build monitor html"
+(facts "about generating build definition html"
        (let [status-text "inProgress"
              state "in-progress-after-failed"
              build-definition-id "10"
@@ -45,7 +45,7 @@
                          :build-number build-number
                          :commit-message commit-message
                          :favicon-path favicon-path}
-             html-string (c/generate-build-monitor-html build-info :anything)]
+             html-string (c/generate-build-definition-html build-info :anything)]
          (fact "build status is displayed"
                html-string => (contains (str "<h1 class=\"status\">" status-text "</h1>")))
          (fact "favicon is included"
@@ -63,7 +63,7 @@
 
        (facts "with refresh info"
               (let [refresh-info {:refresh-interval 60 :build-definition-ids ["10"]}
-                    html-string (c/generate-build-monitor-html :anything refresh-info)]
+                    html-string (c/generate-build-definition-html :anything refresh-info)]
                 (fact "buildDefinitionIds value is set"
                       html-string => (contains "window.buildDefinitionIds = [\"10\"];"))
                 (fact "refreshSeconds value is set"
@@ -74,7 +74,7 @@
                       html-string => (contains "font-awesome"))))
 
        (facts "without refresh info"
-              (let [html-string (c/generate-build-monitor-html :anything nil)]
+              (let [html-string (c/generate-build-definition-html :anything nil)]
                 (fact "refresh script is not included"
                     html-string =not=> (contains "script"))
                 (fact "font awesome is not included"
@@ -103,7 +103,7 @@
          in-progress-build  succeeded-build   "inProgress"   "in-progress"
          in-progress-build  failed-build      "inProgress"   "in-progress-after-failed"))
 
-(facts "about generating index html"
+(facts "about generating build monitor html"
        (let [build-info-maps [{:build-definition-name "BD1"
                                :build-definition-id "10"
                                :build-number "2015.12.23.03"
@@ -118,7 +118,7 @@
                                :status-text "failed"
                                :state "failed"
                                :favicon-path "/favicon_failed.ico"}]
-             html (c/generate-index-html build-info-maps)]
+             html (c/generate-build-monitor-html build-info-maps)]
          html => (contains "<title>")
          html => (contains "style.css")
          (fact "body includes a panel-count class"
@@ -137,7 +137,7 @@
                html => (contains "href=\"/build-definitions/20\"")))
 
        (fact "body includes a panel-count class with the correct number of build definitions"
-            (c/generate-index-html [1]) => (contains "panel-count-1")
-            (c/generate-index-html [1 2]) => (contains "panel-count-2")
-            (c/generate-index-html [1 2 3]) => (contains "panel-count-3")
-            (c/generate-index-html [1 2 3 4]) => (contains "panel-count-4")))
+            (c/generate-build-monitor-html [1]) => (contains "panel-count-1")
+            (c/generate-build-monitor-html [1 2]) => (contains "panel-count-2")
+            (c/generate-build-monitor-html [1 2 3]) => (contains "panel-count-3")
+            (c/generate-build-monitor-html [1 2 3 4]) => (contains "panel-count-4")))
