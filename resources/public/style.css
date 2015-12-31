@@ -73,12 +73,35 @@ a{
 }
 
 .refresh-icon{
-  z-index: 1;
+  z-index: 102;
   position: absolute;
   color: white;
   top: 10px;
   left: 10px;
 }
+
+.error-modal-background{
+  position: fixed;
+  z-index: 100;
+  background-color: rgba(0,0,0,0.7);
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+}
+
+.error-modal-text{
+  position: fixed;
+  z-index: 101;
+  width: 50%;
+  border-radius: 10px;
+  background-color: white;
+  color: black;
+  margin: 5% 20%;
+  padding: 5%;
+  font-size: 400%;
+}
+
 
 .hidden{
   display: none;

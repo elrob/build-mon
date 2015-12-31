@@ -15,6 +15,10 @@
 
 (def refresh-icon [:div.refresh-icon.hidden [:i.fa.fa-refresh.fa-spin.fa-3x]])
 
+(def error-modal [:div.error-modal.hidden
+                  [:div.error-modal-background]
+                  [:h1.error-modal-text "Build Monitor Unreachable"]])
+
 (defn succeeded? [build] (= (:result build) "succeeded"))
 
 (defn in-progress? [build] (nil? (:result build)))
@@ -76,7 +80,7 @@
               (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
              [:script {:src "/refresh.js" :defer "defer"}]))
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
-    [:body refresh-icon (generate-build-panel build-info)]))
+    [:body refresh-icon error-modal (generate-build-panel build-info)]))
 
 (defn retrieve-commit-message [account token build]
   (let [repository-id (-> build :repository :id)

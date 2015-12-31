@@ -15,6 +15,14 @@ function hideRefreshIcon() {
   document.getElementsByClassName("refresh-icon")[0].className = "refresh-icon hidden";
 }
 
+function showErrorModal() {
+  document.getElementsByClassName("error-modal")[0].className = "error-modal";
+}
+
+function hideErrorModal() {
+  document.getElementsByClassName("error-modal")[0].className = "error-modal hidden";
+}
+
 function refreshBuild(refreshPath) {
   return function() {
     showRefreshIcon();
@@ -22,14 +30,12 @@ function refreshBuild(refreshPath) {
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState == 4) {
         if (xhttp.status == 200) {
+          hideErrorModal();
           var buildData = JSON.parse(xhttp.responseText);
           updateBuildPanel(buildData);
         }
         else {
-          var updatedBodyElement = document.createElement('body');
-          updatedBodyElement.innerHTML = "BUILD MONITOR UNREACHABLE";
-          var currentBodyElement = document.getElementsByTagName('body')[0];
-          currentBodyElement.parentNode.replaceChild(updatedBodyElement, currentBodyElement);
+          showErrorModal();
         }
         hideRefreshIcon();
       }
