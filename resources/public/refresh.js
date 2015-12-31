@@ -23,28 +23,26 @@ function hideErrorModal() {
   document.getElementsByClassName("error-modal")[0].className = "error-modal hidden";
 }
 
-function refreshBuild(refreshPath) {
-  return function() {
-    showRefreshIcon();
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (xhttp.readyState == 4) {
-        if (xhttp.status == 200) {
-          hideErrorModal();
-          var buildData = JSON.parse(xhttp.responseText);
-          updateBuildPanel(buildData);
-        }
-        else {
-          showErrorModal();
-        }
-        hideRefreshIcon();
+function refreshBuild() {
+  showRefreshIcon();
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4) {
+      if (xhttp.status == 200) {
+        hideErrorModal();
+        var buildData = JSON.parse(xhttp.responseText);
+        updateBuildPanel(buildData);
       }
-    };
-    xhttp.open("GET", refreshPath, true);
-    xhttp.send();
-  }
+      else {
+        showErrorModal();
+      }
+      hideRefreshIcon();
+    }
+  };
+  xhttp.open("GET", "/ajax/build-definitions/" + window.buildDefinitionIds[0], true);
+  xhttp.send();
 }
 
 window.onload=function(){
-  window.setInterval(refreshBuild(window.refreshPath), window.refreshSeconds * 1000);
+  window.setInterval(refreshBuild, window.refreshSeconds * 1000);
 };

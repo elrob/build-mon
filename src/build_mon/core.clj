@@ -5,7 +5,8 @@
             [bidi.bidi :as bidi]
             [clj-http.client :as client]
             [cheshire.core :as json]
-            [hiccup.core :as hiccup])
+            [hiccup.core :as hiccup]
+            [clojure.string :as s])
   (:gen-class))
 
 (def states #{:succeeded :failed :in-progress :in-progress-after-failed})
@@ -61,7 +62,7 @@
 (defn generate-build-panel [{:keys [build-definition-name build-definition-id build-number
                                     status-text state commit-message]}]
   [:a {:href (str "/build-definitions/" build-definition-id)}
-   [:div {:class (str "build-panel " state)}
+   [:div {:id (str "build-definition-id-" build-definition-id) :class (str "build-panel " state)}
     [:h1.status status-text]
     [:h1.build-definition-name build-definition-name]
     [:h1.build-number build-number]
@@ -76,7 +77,7 @@
        (list [:link {:rel "stylesheet" :href
                      "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
              [:script
-              (str "window.refreshPath = \"/ajax" (:refresh-path refresh-info) "\";")
+              (str "window.buildDefinitionIds = [\"" (s/join "\",\"" (:build-definition-ids refresh-info)) "\"];")
               (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
              [:script {:src "/refresh.js" :defer "defer"}]))
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
@@ -118,7 +119,7 @@
         refresh-interval (refresh-interval (:query-params request))
         refresh-info (when refresh-interval
                        {:refresh-interval refresh-interval
-                        :refresh-path (:uri request)})]
+                        :build-definition-ids [build-definition-id]})]
     (when build-info
       {:status 200
        :headers {"Content-Type" "text/html; charset=utf-8"}

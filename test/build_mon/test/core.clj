@@ -33,12 +33,14 @@
 (facts "about generating build monitor html"
        (let [status-text "inProgress"
              state "in-progress-after-failed"
+             build-definition-id "10"
              build-definition-name "My CI Build"
              build-number "2015.12.17.04"
              commit-message "great commit"
              favicon-path "/favicon_in-progress-after-failed.ico"
              build-info {:status-text status-text
                          :state state
+                         :build-definition-id "10"
                          :build-definition-name build-definition-name
                          :build-number build-number
                          :commit-message commit-message
@@ -50,6 +52,8 @@
                html-string => (contains (str  "<link href=\"" favicon-path "\"")))
          (fact "build-panel has state as a css-class"
                html-string => (contains (str "div class=\"build-panel " state)))
+         (fact "build-panel has build definition id in css-id"
+               html-string => (contains (str "id=\"build-definition-id-" build-definition-id)))
          (fact "build definition name is displayed"
                html-string => (contains build-definition-name))
          (fact "build number is displayed"
@@ -58,11 +62,10 @@
                html-string => (contains commit-message)))
 
        (facts "with refresh info"
-              (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build"}}
-                    refresh-info {:refresh-path "/build-definitions/10" :refresh-interval 60}
+              (let [refresh-info {:refresh-interval 60 :build-definition-ids ["10"]}
                     html-string (c/generate-build-monitor-html :anything refresh-info)]
-                (fact "refreshPath value is set"
-                      html-string => (contains "<script>window.refreshPath = \"/ajax/build-definitions/10\";"))
+                (fact "buildDefinitionIds value is set"
+                      html-string => (contains "window.buildDefinitionIds = [\"10\"];"))
                 (fact "refreshSeconds value is set"
                       html-string => (contains "window.refreshSeconds = 60;"))
                 (fact "refresh.js is included"
@@ -120,6 +123,9 @@
          html => (contains "style.css")
          (fact "body includes a panel-count class"
               html => (contains "<body class=\"panel-count-2\""))
+         (fact "includes ids of build definitions"
+               html => (contains "build-definition-id-10")
+               html => (contains "build-definition-id-20"))
          (fact "includes names of build definitions"
                html => (contains "BD1")
                html => (contains "BD2"))
