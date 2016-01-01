@@ -33,14 +33,14 @@
 (facts "about generating build definition html"
        (let [status-text "inProgress"
              state :in-progress-after-failed
-             build-definition-id "10"
+             build-definition-id 10
              build-definition-name "My CI Build"
              build-number "2015.12.17.04"
              commit-message "great commit"
              favicon-path "/favicon_in-progress-after-failed.ico"
              build-info {:status-text status-text
                          :state state
-                         :build-definition-id "10"
+                         :build-definition-id build-definition-id
                          :build-definition-name build-definition-name
                          :build-number build-number
                          :commit-message commit-message
@@ -63,10 +63,10 @@
 
        (facts "with refresh info"
               (let [some-build-info {:state :succeeded}
-                    refresh-info {:refresh-interval 60 :build-definition-ids ["10"]}
+                    refresh-info {:refresh-interval 60 :build-definition-ids [10]}
                     html-string (c/generate-build-definition-html some-build-info refresh-info)]
                 (fact "buildDefinitionIds value is set"
-                      html-string => (contains "window.buildDefinitionIds = [\"10\"];"))
+                      html-string => (contains "window.buildDefinitionIds = [10];"))
                 (fact "refreshSeconds value is set"
                       html-string => (contains "window.refreshSeconds = 60;"))
                 (fact "refresh.js is included"
@@ -83,10 +83,10 @@
                     html-string =not=> (contains "font-awesome")))))
 
 (facts "about generating-build-info"
-       (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build" :id "10"}}]
+       (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build" :id 10}}]
          (c/generate-build-info build succeeded-build "great commit")
          => {:build-definition-name "My CI Build"
-             :build-definition-id "10"
+             :build-definition-id 10
              :build-number "2015.12.17.04"
              :commit-message "great commit"
              :status-text "succeeded"
@@ -107,14 +107,14 @@
 
 (facts "about generating build monitor html"
        (let [build-info-maps [{:build-definition-name "BD1"
-                               :build-definition-id "10"
+                               :build-definition-id 10
                                :build-number "2015.12.23.03"
                                :commit-message "change things"
                                :status-text "succeeded"
                                :state :succeeded
                                :favicon-path "/favicon_succeeded.ico"}
                               {:build-definition-name "BD2"
-                               :build-definition-id "20"
+                               :build-definition-id 20
                                :build-number "403"
                                :commit-message "break things"
                                :status-text "failed"
@@ -161,8 +161,6 @@
            [ipaf f]                f-favicon
            [s ip ipaf f]           f-favicon))
 
-
-
        (fact "body includes a panel-count class with the correct number of build definitions"
              (let [b {:state :succeeded}]
                (c/generate-build-monitor-html [b] :anything) => (contains "panel-count-1")
@@ -172,10 +170,10 @@
 
        (facts "with refresh info"
               (let [b {:state :succeeded}
-                    refresh-info {:refresh-interval 60 :build-definition-ids ["10" "20"]}
+                    refresh-info {:refresh-interval 60 :build-definition-ids [10 20]}
                     html-string (c/generate-build-monitor-html [b] refresh-info)]
                 (fact "buildDefinitionIds value is set"
-                      html-string => (contains "window.buildDefinitionIds = [\"10\",\"20\"];"))
+                      html-string => (contains "window.buildDefinitionIds = [10,20];"))
                 (fact "refreshSeconds value is set"
                       html-string => (contains "window.refreshSeconds = 60;"))
                 (fact "refresh.js is included"
