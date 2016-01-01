@@ -1,5 +1,4 @@
 function updateBuildPanel(buildPanel, buildData) {
-//  document.querySelector("link[rel='shortcut icon'").setAttribute("href", buildData["favicon-path"])
   buildPanel.className = "build-panel " + buildData["state"];
   buildPanel.getElementsByClassName("status")[0].innerHTML = buildData["status-text"];
   buildPanel.getElementsByClassName("build-definition-name")[0].innerHTML = buildData["build-definition-name"];
@@ -23,6 +22,17 @@ function hideErrorModal() {
   document.getElementsByClassName("error-modal")[0].className = "error-modal hidden";
 }
 
+function updateFavicon(refreshArray) {
+  var statesOrderedWorstFirst = ["failed", "in-progress-after-failed", "in-progress", "succeeded"];
+  var currentStates = refreshArray.slice();
+  currentStates.sort(function(a,b) {
+    return statesOrderedWorstFirst.indexOf(a) - statesOrderedWorstFirst.indexOf(b);
+  });
+  var worstCurrentState = currentStates[0];
+  var faviconPath = "/favicon_" + worstCurrentState + ".ico";
+  document.querySelector("link[rel='shortcut icon'").setAttribute("href", faviconPath);
+}
+
 function refreshBuildPanel(buildDefinitionId, refreshArrayIndex, refreshArray) {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -37,8 +47,9 @@ function refreshBuildPanel(buildDefinitionId, refreshArrayIndex, refreshArray) {
       else {
         showErrorModal();
       }
-      refreshArray[refreshArrayIndex] = true;
+      refreshArray[refreshArrayIndex] = buildData["state"];
       if (refreshArray.every(function(value){return value;})) {
+        updateFavicon(refreshArray);
         hideRefreshIcon();
       }
     }
