@@ -76,15 +76,6 @@
          (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
         [:script {:src "/refresh.js" :defer "defer"}]))
 
-(defn generate-build-definition-html [build-info refresh-info]
-  (hiccup/html
-    [:head
-     [:title "Build Status"]
-     [:link {:rel "shortcut icon" :href (:favicon-path build-info)}]
-     (when refresh-info (refresh-html refresh-info))
-     [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
-    [:body refresh-icon error-modal (generate-build-panel build-info)]))
-
 (defn retrieve-commit-message [account token build]
   (let [repository-id (-> build :repository :id)
         source-version (:sourceVersion build)
@@ -114,18 +105,6 @@
         commit-message (retrieve-commit-message account token build)]
     (when build
       (generate-build-info build previous-build commit-message))))
-
-(defn build-definition-screen [account project token request]
-  (let [build-definition-id (-> request :route-params :build-definition-id)
-        build-info (retrieve-build-info account project token build-definition-id)
-        refresh-interval (refresh-interval (:query-params request))
-        refresh-info (when refresh-interval
-                       {:refresh-interval refresh-interval
-                        :build-definition-ids [build-definition-id]})]
-    (when build-info
-      {:status 200
-       :headers {"Content-Type" "text/html; charset=utf-8"}
-       :body (generate-build-definition-html build-info refresh-info)})))
 
 (defn build-info [account project token request]
   (let [build-definition-id (-> request :route-params :build-definition-id)
@@ -162,6 +141,10 @@
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
          :body (generate-build-monitor-html build-info-maps refresh-info)}))))
+
+(defn build-definition-screen [account project token request]
+  (let [build-definition-id (-> request :route-params :build-definition-id Integer.)]
+    (build-monitor-for-build-definition-ids account project token request [build-definition-id])))
 
 (defn build-monitor [account project token request]
   (let [build-definitions (retrieve-build-definitions account project token)
