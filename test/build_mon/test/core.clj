@@ -118,11 +118,11 @@
                                :status-text "failed"
                                :state "failed"
                                :favicon-path "/favicon_failed.ico"}]
-             html (c/generate-build-monitor-html build-info-maps)]
+             html (c/generate-build-monitor-html build-info-maps :anything)]
          html => (contains "<title>")
          html => (contains "style.css")
          (fact "body includes a panel-count class"
-              html => (contains "<body class=\"panel-count-2\""))
+               html => (contains "<body class=\"panel-count-2\""))
          (fact "includes ids of build definitions"
                html => (contains "build-definition-id-10")
                html => (contains "build-definition-id-20"))
@@ -137,7 +137,26 @@
                html => (contains "href=\"/build-definitions/20\"")))
 
        (fact "body includes a panel-count class with the correct number of build definitions"
-            (c/generate-build-monitor-html [1]) => (contains "panel-count-1")
-            (c/generate-build-monitor-html [1 2]) => (contains "panel-count-2")
-            (c/generate-build-monitor-html [1 2 3]) => (contains "panel-count-3")
-            (c/generate-build-monitor-html [1 2 3 4]) => (contains "panel-count-4")))
+             (c/generate-build-monitor-html [1] :anything) => (contains "panel-count-1")
+             (c/generate-build-monitor-html [1 2] :anything) => (contains "panel-count-2")
+             (c/generate-build-monitor-html [1 2 3] :anything) => (contains "panel-count-3")
+             (c/generate-build-monitor-html [1 2 3 4] :anything) => (contains "panel-count-4"))
+
+       (facts "with refresh info"
+              (let [refresh-info {:refresh-interval 60 :build-definition-ids ["10" "20"]}
+                    html-string (c/generate-build-monitor-html [:anything] refresh-info)]
+                (fact "buildDefinitionIds value is set"
+                      html-string => (contains "window.buildDefinitionIds = [\"10\",\"20\"];"))
+                (fact "refreshSeconds value is set"
+                      html-string => (contains "window.refreshSeconds = 60;"))
+                (fact "refresh.js is included"
+                      html-string => (contains "src=\"/refresh.js\""))
+                (fact "font awesome is included"
+                      html-string => (contains "font-awesome"))))
+
+       (facts "without refresh info"
+              (let [html-string (c/generate-build-monitor-html [:anything] nil)]
+                (fact "refresh script is not included"
+                      html-string =not=> (contains "script"))
+                (fact "font awesome is not included"
+                      html-string =not=> (contains "font-awesome")))))

@@ -133,24 +133,38 @@
        :headers {"Content-Type" "application/json"}
        :body (json/generate-string build-info)})))
 
-(defn generate-build-monitor-html [build-info-maps]
+(defn generate-build-monitor-html [build-info-maps refresh-info]
   (hiccup/html
     [:head
      [:title "Build Monitor"]
+     (when refresh-info
+       (list [:link {:rel "stylesheet" :href
+                     "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
+             [:script
+              (str "window.buildDefinitionIds = [\"" (s/join "\",\"" (:build-definition-ids refresh-info)) "\"];")
+              (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
+             [:script {:src "/refresh.js" :defer "defer"}]))
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
     [:body {:class (str "panel-count-" (count build-info-maps))}
+     refresh-icon
+     error-modal
      (map generate-build-panel build-info-maps)]))
 
 (defn build-definition->build-info [account project token build-definition]
   (retrieve-build-info account project token (:id build-definition)))
 
 (defn build-monitor [account project token request]
-  (let [build-definitions (retrieve-build-definitions account project token)]
+  (let [build-definitions (retrieve-build-definitions account project token)
+        build-definition-ids (map :id build-definitions)
+        refresh-interval (refresh-interval (:query-params request))
+        refresh-info (when refresh-interval
+                       {:refresh-interval refresh-interval
+                        :build-definition-ids build-definition-ids})]
     (when (> (count build-definitions) 0)
       (let [build-info-maps (map (partial build-definition->build-info account project token) build-definitions)]
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
-         :body (generate-build-monitor-html build-info-maps)}))))
+         :body (generate-build-monitor-html build-info-maps refresh-info)}))))
 
 (def routes ["/" {"" :build-monitor
                   ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition

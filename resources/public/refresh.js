@@ -1,5 +1,5 @@
 function updateBuildPanel(buildPanel, buildData) {
-  document.querySelector("link[rel='shortcut icon'").setAttribute("href", buildData["favicon-path"])
+//  document.querySelector("link[rel='shortcut icon'").setAttribute("href", buildData["favicon-path"])
   buildPanel.className = "build-panel " + buildData["state"];
   buildPanel.getElementsByClassName("status")[0].innerHTML = buildData["status-text"];
   buildPanel.getElementsByClassName("build-definition-name")[0].innerHTML = buildData["build-definition-name"];
