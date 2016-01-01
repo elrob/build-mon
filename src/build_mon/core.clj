@@ -142,7 +142,7 @@
          :headers {"Content-Type" "text/html; charset=utf-8"}
          :body (generate-build-monitor-html build-info-maps refresh-info)}))))
 
-(defn build-definition-screen [account project token request]
+(defn build-definition-monitor [account project token request]
   (let [build-definition-id (-> request :route-params :build-definition-id Integer.)]
     (build-monitor-for-build-definition-ids account project token request [build-definition-id])))
 
@@ -152,7 +152,7 @@
     (build-monitor-for-build-definition-ids account project token request build-definition-ids)))
 
 (def routes ["/" {"" :build-monitor
-                  ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition
+                  ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition-monitor
                   ["ajax/build-definitions/" [#"\d+" :build-definition-id]] :build-info}])
 
 (defn wrap-routes [handlers]
@@ -164,8 +164,8 @@
 (defn handlers [account project token]
   {:build-monitor
    (partial build-monitor account project token)
-   :build-definition
-   (partial build-definition-screen account project token)
+   :build-definition-monitor
+   (partial build-definition-monitor account project token)
    :build-info
    (partial build-info account project token)})
 
