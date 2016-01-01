@@ -26,13 +26,13 @@
 
 (fact "there are no missing favicons"
       (let [filenames-in-public-directory (map str (.list (io/file (io/resource "public"))))
-            required-favicon-paths (map c/get-favicon-path c/states)
+            required-favicon-paths (map c/get-favicon-path c/states-ordered-worst-first)
             required-favicon-filenames (map #(.substring % 1) required-favicon-paths)]
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
 (facts "about generating build definition html"
        (let [status-text "inProgress"
-             state "in-progress-after-failed"
+             state :in-progress-after-failed
              build-definition-id "10"
              build-definition-name "My CI Build"
              build-number "2015.12.17.04"
@@ -51,7 +51,7 @@
          (fact "favicon is included"
                html-string => (contains (str  "<link href=\"" favicon-path "\"")))
          (fact "build-panel has state as a css-class"
-               html-string => (contains (str "div class=\"build-panel " state)))
+               html-string => (contains (str "div class=\"build-panel " (name state))))
          (fact "build-panel has build definition id in css-id"
                html-string => (contains (str "id=\"build-definition-id-" build-definition-id)))
          (fact "build definition name is displayed"
@@ -62,8 +62,9 @@
                html-string => (contains commit-message)))
 
        (facts "with refresh info"
-              (let [refresh-info {:refresh-interval 60 :build-definition-ids ["10"]}
-                    html-string (c/generate-build-definition-html :anything refresh-info)]
+              (let [some-build-info {:state :succeeded}
+                    refresh-info {:refresh-interval 60 :build-definition-ids ["10"]}
+                    html-string (c/generate-build-definition-html some-build-info refresh-info)]
                 (fact "buildDefinitionIds value is set"
                       html-string => (contains "window.buildDefinitionIds = [\"10\"];"))
                 (fact "refreshSeconds value is set"
@@ -74,7 +75,8 @@
                       html-string => (contains "font-awesome"))))
 
        (facts "without refresh info"
-              (let [html-string (c/generate-build-definition-html :anything nil)]
+              (let [some-build-info {:state :succeeded}
+                    html-string (c/generate-build-definition-html some-build-info nil)]
                 (fact "refresh script is not included"
                     html-string =not=> (contains "script"))
                 (fact "font awesome is not included"
@@ -88,7 +90,7 @@
              :build-number "2015.12.17.04"
              :commit-message "great commit"
              :status-text "succeeded"
-             :state "succeeded"
+             :state :succeeded
              :favicon-path "/favicon_succeeded.ico"})
 
        (tabular
@@ -96,12 +98,12 @@
                (let [build-info (c/generate-build-info ?build ?previous "commit message")]
                  (:status-text build-info) => ?status-text
                  (:state build-info) => ?state
-                 (:favicon-path build-info) => (str "/favicon_" ?state ".ico")))
+                 (:favicon-path build-info) => (str "/favicon_" (name ?state) ".ico")))
          ?build             ?previous         ?status-text   ?state
-         succeeded-build    :any              "succeeded"    "succeeded"
-         failed-build       :any              "failed"       "failed"
-         in-progress-build  succeeded-build   "inProgress"   "in-progress"
-         in-progress-build  failed-build      "inProgress"   "in-progress-after-failed"))
+         succeeded-build    :any              "succeeded"    :succeeded
+         failed-build       :any              "failed"       :failed
+         in-progress-build  succeeded-build   "inProgress"   :in-progress
+         in-progress-build  failed-build      "inProgress"   :in-progress-after-failed))
 
 (facts "about generating build monitor html"
        (let [build-info-maps [{:build-definition-name "BD1"
@@ -109,14 +111,14 @@
                                :build-number "2015.12.23.03"
                                :commit-message "change things"
                                :status-text "succeeded"
-                               :state "succeeded"
+                               :state :succeeded
                                :favicon-path "/favicon_succeeded.ico"}
                               {:build-definition-name "BD2"
                                :build-definition-id "20"
                                :build-number "403"
                                :commit-message "break things"
                                :status-text "failed"
-                               :state "failed"
+                               :state :failed
                                :favicon-path "/favicon_failed.ico"}]
              html (c/generate-build-monitor-html build-info-maps :anything)]
          html => (contains "<title>")
@@ -136,15 +138,42 @@
                html => (contains "href=\"/build-definitions/10\"")
                html => (contains "href=\"/build-definitions/20\"")))
 
+
+       (let [s {:state :succeeded}
+             ip {:state :in-progress}
+             ipaf {:state :in-progress-after-failed}
+             f {:state :failed}
+             s-favicon "/favicon_succeeded.ico"
+             ip-favicon "/favicon_in-progress.ico"
+             ipaf-favicon "/favicon_in-progress-after-failed.ico"
+             f-favicon "/favicon_failed.ico"]
+         (tabular
+           (fact "worst state is used for favicon"
+                 (c/generate-build-monitor-html ?build-info-maps :anything) => (contains ?favicon-path))
+           ?build-info-maps        ?favicon-path
+           [s]                     s-favicon
+           [ip]                    ip-favicon
+           [ipaf]                  ipaf-favicon
+           [f]                     f-favicon
+           [s ip]                  ip-favicon
+           [ip s]                  ip-favicon
+           [ip ipaf]               ipaf-favicon
+           [ipaf f]                f-favicon
+           [s ip ipaf f]           f-favicon))
+
+
+
        (fact "body includes a panel-count class with the correct number of build definitions"
-             (c/generate-build-monitor-html [1] :anything) => (contains "panel-count-1")
-             (c/generate-build-monitor-html [1 2] :anything) => (contains "panel-count-2")
-             (c/generate-build-monitor-html [1 2 3] :anything) => (contains "panel-count-3")
-             (c/generate-build-monitor-html [1 2 3 4] :anything) => (contains "panel-count-4"))
+             (let [b {:state :succeeded}]
+               (c/generate-build-monitor-html [b] :anything) => (contains "panel-count-1")
+               (c/generate-build-monitor-html [b b] :anything) => (contains "panel-count-2")
+               (c/generate-build-monitor-html [b b b] :anything) => (contains "panel-count-3")
+               (c/generate-build-monitor-html [b b b b] :anything) => (contains "panel-count-4")))
 
        (facts "with refresh info"
-              (let [refresh-info {:refresh-interval 60 :build-definition-ids ["10" "20"]}
-                    html-string (c/generate-build-monitor-html [:anything] refresh-info)]
+              (let [b {:state :succeeded}
+                    refresh-info {:refresh-interval 60 :build-definition-ids ["10" "20"]}
+                    html-string (c/generate-build-monitor-html [b] refresh-info)]
                 (fact "buildDefinitionIds value is set"
                       html-string => (contains "window.buildDefinitionIds = [\"10\",\"20\"];"))
                 (fact "refreshSeconds value is set"
@@ -155,7 +184,7 @@
                       html-string => (contains "font-awesome"))))
 
        (facts "without refresh info"
-              (let [html-string (c/generate-build-monitor-html [:anything] nil)]
+              (let [html-string (c/generate-build-monitor-html [{:state :succeeded}] nil)]
                 (fact "refresh script is not included"
                       html-string =not=> (contains "script"))
                 (fact "font awesome is not included"

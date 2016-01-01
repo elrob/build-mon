@@ -9,7 +9,7 @@
             [clojure.string :as s])
   (:gen-class))
 
-(def states #{:succeeded :failed :in-progress :in-progress-after-failed})
+(def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded])
 
 (def default-refresh-interval 20)
 (def minimum-refresh-interval 5)
@@ -56,13 +56,13 @@
      :build-number (:buildNumber build)
      :commit-message commit-message
      :status-text (get-status-text build)
-     :state (name state)
+     :state state
      :favicon-path (get-favicon-path state)}))
 
 (defn generate-build-panel [{:keys [build-definition-name build-definition-id build-number
                                     status-text state commit-message]}]
   [:a {:href (str "/build-definitions/" build-definition-id)}
-   [:div {:id (str "build-definition-id-" build-definition-id) :class (str "build-panel " state)}
+   [:div {:id (str "build-definition-id-" build-definition-id) :class (str "build-panel " (name state))}
     [:h1.status status-text]
     [:h1.build-definition-name build-definition-name]
     [:h1.build-number build-number]
@@ -133,10 +133,16 @@
        :headers {"Content-Type" "application/json"}
        :body (json/generate-string build-info)})))
 
+(defn get-favicon-path-for-multiple-build-definitions [build-info-maps]
+  (let [current-states (map :state build-info-maps)
+        sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
+    (get-favicon-path (first (sort-by sorting-map current-states)))))
+
 (defn generate-build-monitor-html [build-info-maps refresh-info]
   (hiccup/html
     [:head
      [:title "Build Monitor"]
+     [:link {:rel "shortcut icon" :href (get-favicon-path-for-multiple-build-definitions build-info-maps)}]
      (when refresh-info
        (list [:link {:rel "stylesheet" :href
                      "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
