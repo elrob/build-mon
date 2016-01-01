@@ -3,22 +3,15 @@
             [ring.middleware.resource :as resource]
             [ring.middleware.params :as params]
             [bidi.bidi :as bidi]
-            [clj-http.client :as client]
             [cheshire.core :as json]
-            [hiccup.core :as hiccup]
-            [clojure.string :as s])
+            [build-mon.vso-api :as api]
+            [build-mon.html :as html])
   (:gen-class))
 
 (def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded])
 
 (def default-refresh-interval 20)
 (def minimum-refresh-interval 5)
-
-(def refresh-icon [:div.refresh-icon.hidden [:i.fa.fa-refresh.fa-spin.fa-3x]])
-
-(def error-modal [:div.error-modal.hidden
-                  [:div.error-modal-background]
-                  [:h1.error-modal-text "Build Monitor Unreachable"]])
 
 (defn succeeded? [build] (= (:result build) "succeeded"))
 
@@ -29,9 +22,6 @@
         (and (in-progress? build) (succeeded? previous-build)) :in-progress
         (and (in-progress? build) (not (succeeded? previous-build))) :in-progress-after-failed
         :default :failed))
-
-(defn get-favicon-path [state]
-  (str "/favicon_" (name state) ".ico"))
 
 (defn get-status-text [build]
   (if (in-progress? build) (:status build) (:result build)))
@@ -56,53 +46,11 @@
      :build-number (:buildNumber build)
      :commit-message commit-message
      :status-text (get-status-text build)
-     :state state
-     :favicon-path (get-favicon-path state)}))
-
-(defn generate-build-panel [{:keys [build-definition-name build-definition-id build-number
-                                    status-text state commit-message]}]
-  [:a {:href (str "/build-definitions/" build-definition-id)}
-   [:div {:id (str "build-definition-id-" build-definition-id) :class (str "build-panel " (name state))}
-    [:h1.status status-text]
-    [:h1.build-definition-name build-definition-name]
-    [:h1.build-number build-number]
-    [:div.commit-message commit-message]]])
-
-(defn refresh-html [refresh-info]
-  (list [:link {:rel "stylesheet" :href
-                "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
-        [:script
-         (str "window.buildDefinitionIds = [" (s/join "," (:build-definition-ids refresh-info)) "];")
-         (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
-        [:script {:src "/refresh.js" :defer "defer"}]))
-
-(defn retrieve-commit-message [account token build]
-  (let [repository-id (-> build :repository :id)
-        source-version (:sourceVersion build)
-        commit-url (str "https://" account ".visualstudio.com/defaultcollection/_apis/git/repositories/"
-                        repository-id "/commits/" source-version "?api-version=1.0")]
-    (try (-> (client/get commit-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
-             :body (json/parse-string true) :comment)
-         (catch Exception e))))
-
-(defn retrieve-last-two-builds [account project token build-definition-id]
-  (let [last-two-builds-url (str "https://" account  ".visualstudio.com/defaultcollection/"
-                                 project "/_apis/build/builds?api-version=2.0&$top=2"
-                                 "&definitions=" build-definition-id)]
-    (try (-> (client/get last-two-builds-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
-             :body (json/parse-string true) :value)
-         (catch Exception e))))
-
-(defn retrieve-build-definitions [account project token]
-  (let [build-definitions-url (str "https://" account  ".visualstudio.com/defaultcollection/"
-                                   project "/_apis/build/definitions?api-version=2.0")]
-    (try (-> (client/get build-definitions-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
-             :body (json/parse-string true) :value)
-         (catch Exception e))))
+     :state state}))
 
 (defn retrieve-build-info [account project token build-definition-id]
-  (let [[build previous-build] (retrieve-last-two-builds account project token build-definition-id)
-        commit-message (retrieve-commit-message account token build)]
+  (let [{:keys [build previous-build commit-message]}
+        (api/retrieve-build-info account project token build-definition-id)]
     (when build
       (generate-build-info build previous-build commit-message))))
 
@@ -114,22 +62,13 @@
        :headers {"Content-Type" "application/json"}
        :body (json/generate-string build-info)})))
 
+(defn get-favicon-path [state]
+  (str "/favicon_" (name state) ".ico"))
+
 (defn get-favicon-path-for-multiple-build-definitions [build-info-maps]
   (let [current-states (map :state build-info-maps)
         sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
     (get-favicon-path (first (sort-by sorting-map current-states)))))
-
-(defn generate-build-monitor-html [build-info-maps refresh-info]
-  (hiccup/html
-    [:head
-     [:title "Build Monitor"]
-     [:link {:rel "shortcut icon" :href (get-favicon-path-for-multiple-build-definitions build-info-maps)}]
-     (when refresh-info (refresh-html refresh-info))
-     [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
-    [:body {:class (str "panel-count-" (count build-info-maps))}
-     refresh-icon
-     error-modal
-     (map generate-build-panel build-info-maps)]))
 
 (defn build-monitor-for-build-definition-ids [account project token request build-definition-ids]
   (let [refresh-interval (refresh-interval (:query-params request))
@@ -137,17 +76,18 @@
                        {:refresh-interval refresh-interval
                         :build-definition-ids build-definition-ids})]
     (when (> (count build-definition-ids) 0)
-      (let [build-info-maps (map #(retrieve-build-info account project token %) build-definition-ids)]
+      (let [build-info-maps (map #(retrieve-build-info account project token %) build-definition-ids)
+            favicon-path (get-favicon-path-for-multiple-build-definitions build-info-maps)]
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
-         :body (generate-build-monitor-html build-info-maps refresh-info)}))))
+         :body (html/generate-build-monitor-html build-info-maps refresh-info favicon-path)}))))
 
 (defn build-definition-monitor [account project token request]
   (let [build-definition-id (-> request :route-params :build-definition-id Integer.)]
     (build-monitor-for-build-definition-ids account project token request [build-definition-id])))
 
 (defn build-monitor [account project token request]
-  (let [build-definitions (retrieve-build-definitions account project token)
+  (let [build-definitions (api/retrieve-build-definitions account project token)
         build-definition-ids (map :id build-definitions)]
     (build-monitor-for-build-definition-ids account project token request build-definition-ids)))
 
