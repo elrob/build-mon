@@ -29,7 +29,7 @@
   (hiccup/html
     [:head
      [:title "Build Monitor"]
-     [:link {:rel "shortcut icon" :href favicon-path}]
+     [:link#favicon {:rel "shortcut icon" :href favicon-path}]
      (when refresh-info (refresh-html refresh-info))
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
     [:body {:class (str "panel-count-" (count build-info-maps))}

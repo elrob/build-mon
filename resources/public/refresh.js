@@ -30,7 +30,7 @@ function updateFavicon(refreshArray) {
   });
   var worstCurrentState = currentStates[0];
   var faviconPath = "/favicon_" + worstCurrentState + ".ico";
-  document.querySelector("link[rel='shortcut icon'").setAttribute("href", faviconPath);
+  document.getElementById("favicon").setAttribute("href", faviconPath);
 }
 
 function refreshBuildPanel(buildDefinitionId, refreshArrayIndex, refreshArray) {
