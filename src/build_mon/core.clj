@@ -66,18 +66,19 @@
   (str "/favicon_" (name state) ".ico"))
 
 (defn get-favicon-path-for-multiple-build-definitions [build-info-maps]
-  (let [current-states (map :state build-info-maps)
+  (let [current-states (remove nil? (map :state build-info-maps))
         sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
     (get-favicon-path (first (sort-by sorting-map current-states)))))
 
 (defn build-monitor-for-build-definition-ids [account project token request build-definition-ids]
-  (let [refresh-interval (refresh-interval (:query-params request))
+  (let [build-info-maps (remove nil? (map #(retrieve-build-info account project token %) build-definition-ids))
+        build-definition-ids-with-build-info (remove nil? (map :build-definition-id build-info-maps))
+        refresh-interval (refresh-interval (:query-params request))
         refresh-info (when refresh-interval
                        {:refresh-interval refresh-interval
-                        :build-definition-ids build-definition-ids})]
-    (when (> (count build-definition-ids) 0)
-      (let [build-info-maps (map #(retrieve-build-info account project token %) build-definition-ids)
-            favicon-path (get-favicon-path-for-multiple-build-definitions build-info-maps)]
+                        :build-definition-ids build-definition-ids-with-build-info})]
+    (when (not-empty build-info-maps)
+      (let [favicon-path (get-favicon-path-for-multiple-build-definitions build-info-maps)]
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
          :body (html/generate-build-monitor-html build-info-maps refresh-info favicon-path)}))))
