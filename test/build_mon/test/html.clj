@@ -24,7 +24,7 @@
                   (fact "stylesheet is included"
                         html-string => (contains "style.css"))
                   (fact "build status is displayed"
-                        html-string => (contains "<h1 class=\"status\">succeeded</h1>"))
+                        html-string => (contains ">succeeded</h1>"))
                   (fact "favicon is included"
                         html-string => (contains "<link href=\"/FAVICON_PATH.ico\""))
                   (fact "build-panel has state as a css-class"

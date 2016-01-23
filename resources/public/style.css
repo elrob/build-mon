@@ -11,24 +11,32 @@ a{
 .build-panel{
   float: left;
   height: 100%;
-  width: 100%;
+  width: 94%;
+  padding-left: 3%;
+  padding-right: 3%;
   box-shadow: 0 0 0.2em 0.1em black inset;
 }
 
 .panel-count-2 .build-panel{
-  width: 50%;
+  width: 46%;
+  padding-left: 2%;
+  padding-right: 2%;
   font-size: smaller;
 }
 
 .panel-count-3 .build-panel{
-  width: 33.33%;
-  width: calc(100% / 3);
+  width: 31.33%;
+  width: calc(94% / 3);
+  padding-left: 1%;
+  padding-right: 1%;
   font-size: smaller;
 }
 
 .panel-count-4 .build-panel{
-  width: 50%;
   height: 50%;
+  width: 46%;
+  padding-left: 2%;
+  padding-right: 2%;
   font-size: smaller;
 }
 
@@ -105,4 +113,10 @@ a{
 
 .hidden{
   display: none;
+}
+
+.hide-overflow{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
