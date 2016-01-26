@@ -20,6 +20,15 @@ Run app:
 
 Visit [localhost:3000](http://localhost:3000)
 
+Deploy app to heroku:
+
+- To deploy the app to Heroku you need to supply Heroku with a port number. Do this through changing line 114 in build_mon/core.clj to the following
+
+```
+(let [port (Integer. (or (or (System/getenv "PORT") port) 3000))]
+```
+
+
 ## Development
 
 Run tests:
