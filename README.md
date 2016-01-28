@@ -29,6 +29,7 @@ A Procfile is included for simple deployment to Heroku.
 - Create a new app in Heroku.
 - Push this repository to it.
 - Set the Config Variables in the app settings:
+
         VSO_ACCOUNT_NAME
         VSO_PROJECT_NAME
         VSO_PERSONAL_ACCESS_TOKEN
