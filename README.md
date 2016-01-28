@@ -4,6 +4,7 @@
 
 A simple build monitor to monitor Visual Studio Online builds
 
+
 ## Usage
 
 Install [Leiningen](http://leiningen.org/)
@@ -19,6 +20,19 @@ Run app:
 
 
 Visit [localhost:3000](http://localhost:3000)
+
+
+## Run on [Heroku](https://heroku.com)
+
+A Procfile is included for simple deployment to Heroku.
+
+- Create a new app in Heroku.
+- Push this repository to it.
+- Set the Config Variables in the app settings:
+        VSO_ACCOUNT_NAME
+        VSO_PROJECT_NAME
+        VSO_PERSONAL_ACCESS_TOKEN
+
 
 ## Development
 
