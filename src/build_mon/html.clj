@@ -6,7 +6,7 @@
 
 (def error-modal [:div.error-modal.hidden
                   [:div.error-modal-background]
-                  [:h1.error-modal-text "Build Monitor Unreachable"]])
+                  [:h1.error-modal-text "Build Monitor Error"]])
 
 (defn- refresh-html [refresh-info]
   (list [:link {:rel "stylesheet" :href

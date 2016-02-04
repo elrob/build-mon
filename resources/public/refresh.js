@@ -14,7 +14,8 @@ function hideRefreshIcon() {
   document.getElementsByClassName("refresh-icon")[0].className = "refresh-icon hidden";
 }
 
-function showErrorModal() {
+function showErrorModal(errorMessage) {
+  document.getElementsByClassName("error-modal-text")[0].innerHTML = errorMessage;
   document.getElementsByClassName("error-modal")[0].className = "error-modal";
 }
 
@@ -44,8 +45,11 @@ function refreshBuildPanel(buildDefinitionId, refreshArrayIndex, refreshArray) {
         var buildPanel = document.getElementById(buildPanelId);
         updateBuildPanel(buildPanel, buildData);
       }
+      else if (xhttp.status == 404) {
+        showErrorModal("Error Retrieving Build Info From VSO");
+      }
       else {
-        showErrorModal();
+        showErrorModal("Build Monitor Unreachable");
       }
       refreshArray[refreshArrayIndex] = buildData["state"];
       if (refreshArray.every(function(value){return value;})) {
