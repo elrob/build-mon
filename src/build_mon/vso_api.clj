@@ -9,7 +9,9 @@
                         repository-id "/commits/" source-version "?api-version=1.0")]
     (try (-> (client/get commit-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
              :body (json/parse-string true) :comment)
-         (catch Exception e))))
+         (catch Exception e
+           (prn "Bad Response when attempting to retrieve commit message.")
+           (prn e)))))
 
 (defn- retrieve-last-two-builds [account project token build-definition-id]
   (let [last-two-builds-url (str "https://" account  ".visualstudio.com/defaultcollection/"
@@ -17,7 +19,9 @@
                                  "&definitions=" build-definition-id)]
     (try (-> (client/get last-two-builds-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
              :body (json/parse-string true) :value)
-         (catch Exception e))))
+         (catch Exception e
+           (prn "Bad Response when attempting to retrieve last two builds.")
+           (prn e)))))
 
 (defn retrieve-build-info [account project token build-definition-id]
   (let [[build previous-build] (retrieve-last-two-builds account project token build-definition-id)
@@ -31,4 +35,6 @@
                                    project "/_apis/build/definitions?api-version=2.0")]
     (try (-> (client/get build-definitions-url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]})
              :body (json/parse-string true) :value)
-         (catch Exception e))))
+         (catch Exception e
+           (prn "Bad Response when attempting to retrieve build definitions.")
+           (prn e)))))
