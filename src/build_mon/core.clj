@@ -48,15 +48,15 @@
      :status-text (get-status-text build)
      :state state}))
 
-(defn retrieve-build-info [account project token build-definition-id]
+(defn retrieve-build-info [get-fn account project build-definition-id]
   (let [{:keys [build previous-build commit-message]}
-        (api/retrieve-build-info account project token build-definition-id)]
+        (api/retrieve-build-info get-fn account project build-definition-id)]
     (when build
       (generate-build-info build previous-build commit-message))))
 
-(defn build-info [account project token request]
+(defn build-info [get-fn account project request]
   (let [build-definition-id (-> request :route-params :build-definition-id)
-        build-info (retrieve-build-info account project token build-definition-id)]
+        build-info (retrieve-build-info get-fn account project build-definition-id)]
     (when build-info
       {:status 200
        :headers {"Content-Type" "application/json"}
@@ -70,8 +70,8 @@
         sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
     (get-favicon-path (first (sort-by sorting-map current-states)))))
 
-(defn build-monitor-for-build-definition-ids [account project token request build-definition-ids]
-  (let [build-info-maps (remove nil? (map #(retrieve-build-info account project token %) build-definition-ids))
+(defn build-monitor-for-build-definition-ids [get-fn account project request build-definition-ids]
+  (let [build-info-maps (remove nil? (map #(retrieve-build-info get-fn account project %) build-definition-ids))
         build-definition-ids-with-build-info (remove nil? (map :build-definition-id build-info-maps))
         refresh-interval (refresh-interval (:query-params request))
         refresh-info (when refresh-interval
@@ -83,14 +83,14 @@
          :headers {"Content-Type" "text/html; charset=utf-8"}
          :body (html/generate-build-monitor-html build-info-maps refresh-info favicon-path)}))))
 
-(defn build-definition-monitor [account project token request]
+(defn build-definition-monitor [get-fn account project request]
   (let [build-definition-id (-> request :route-params :build-definition-id Integer.)]
-    (build-monitor-for-build-definition-ids account project token request [build-definition-id])))
+    (build-monitor-for-build-definition-ids get-fn account project request [build-definition-id])))
 
-(defn build-monitor [account project token request]
-  (let [build-definitions (api/retrieve-build-definitions account project token)
+(defn build-monitor [get-fn account project request]
+  (let [build-definitions (api/retrieve-build-definitions get-fn account project)
         build-definition-ids (map :id build-definitions)]
-    (build-monitor-for-build-definition-ids account project token request build-definition-ids)))
+    (build-monitor-for-build-definition-ids get-fn account project request build-definition-ids)))
 
 (def routes ["/" {"" :build-monitor
                   ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition-monitor
@@ -102,18 +102,19 @@
       (when-let [handler (-> route-m :handler handlers)]
         (handler (merge request (select-keys route-m [:route-params])))))))
 
-(defn handlers [account project token]
+(defn handlers [get-fn account project]
   {:build-monitor
-   (partial build-monitor account project token)
+   (partial build-monitor get-fn account project)
    :build-definition-monitor
-   (partial build-definition-monitor account project token)
+   (partial build-definition-monitor get-fn account project)
    :build-info
-   (partial build-info account project token)})
+   (partial build-info get-fn account project)})
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)
-      (let [wrapped-handler (-> (handlers vso-account vso-project vso-personal-access-token)
+      (let [vso-api-get-fn (api/vso-api-get-fn vso-personal-access-token)
+            wrapped-handler (-> (handlers vso-api-get-fn vso-account vso-project)
                                 wrap-routes
                                 (resource/wrap-resource "public")
                                 (params/wrap-params))]
