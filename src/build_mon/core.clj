@@ -48,15 +48,15 @@
      :status-text (get-status-text build)
      :state state}))
 
-(defn retrieve-build-info [vso-api-data build-definition-id]
+(defn retrieve-build-info [vso-api build-definition-id]
   (let [{:keys [build previous-build commit-message]}
-        (api/retrieve-build-info vso-api-data build-definition-id)]
+        ((:retrieve-build-info vso-api) build-definition-id)]
     (when build
       (generate-build-info build previous-build commit-message))))
 
-(defn build-info [vso-api-data request]
+(defn build-info [vso-api request]
   (let [build-definition-id (-> request :route-params :build-definition-id)
-        build-info (retrieve-build-info vso-api-data build-definition-id)]
+        build-info (retrieve-build-info vso-api build-definition-id)]
     (when build-info
       {:status 200
        :headers {"Content-Type" "application/json"}
@@ -70,8 +70,8 @@
         sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
     (get-favicon-path (first (sort-by sorting-map current-states)))))
 
-(defn build-monitor-for-build-definition-ids [vso-api-data request build-definition-ids]
-  (let [build-info-maps (remove nil? (map #(retrieve-build-info vso-api-data %) build-definition-ids))
+(defn build-monitor-for-build-definition-ids [vso-api request build-definition-ids]
+  (let [build-info-maps (remove nil? (map #(retrieve-build-info vso-api %) build-definition-ids))
         build-definition-ids-with-build-info (remove nil? (map :build-definition-id build-info-maps))
         refresh-interval (refresh-interval (:query-params request))
         refresh-info (when refresh-interval
@@ -83,14 +83,14 @@
          :headers {"Content-Type" "text/html; charset=utf-8"}
          :body (html/generate-build-monitor-html build-info-maps refresh-info favicon-path)}))))
 
-(defn build-definition-monitor [vso-api-data request]
+(defn build-definition-monitor [vso-api request]
   (let [build-definition-id (-> request :route-params :build-definition-id Integer.)]
-    (build-monitor-for-build-definition-ids vso-api-data request [build-definition-id])))
+    (build-monitor-for-build-definition-ids vso-api request [build-definition-id])))
 
-(defn build-monitor [vso-api-data request]
-  (let [build-definitions (api/retrieve-build-definitions vso-api-data)
+(defn build-monitor [vso-api request]
+  (let [build-definitions ((:retrieve-build-definitions vso-api))
         build-definition-ids (map :id build-definitions)]
-    (build-monitor-for-build-definition-ids vso-api-data request build-definition-ids)))
+    (build-monitor-for-build-definition-ids vso-api request build-definition-ids)))
 
 (def routes ["/" {"" :build-monitor
                   ["build-definitions/" [#"\d+" :build-definition-id]] :build-definition-monitor
@@ -102,21 +102,19 @@
       (when-let [handler (-> route-m :handler handlers)]
         (handler (merge request (select-keys route-m [:route-params])))))))
 
-(defn handlers [vso-api-data]
+(defn handlers [vso-api]
   {:build-monitor
-   (partial build-monitor vso-api-data)
+   (partial build-monitor vso-api)
    :build-definition-monitor
-   (partial build-definition-monitor vso-api-data)
+   (partial build-definition-monitor vso-api)
    :build-info
-   (partial build-info vso-api-data)})
+   (partial build-info vso-api)})
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)
-      (let [vso-api-data {:get-fn (api/vso-api-get-fn vso-personal-access-token)
-                          :account vso-account
-                          :project vso-project}
-            wrapped-handler (-> (handlers vso-api-data)
+      (let [vso-api (api/vso-api-fns (api/vso-api-get-fn vso-personal-access-token) vso-account vso-project)
+            wrapped-handler (-> (handlers vso-api)
                                 wrap-routes
                                 (resource/wrap-resource "public")
                                 (params/wrap-params))]

@@ -2,10 +2,6 @@
   (:require [clj-http.client :as client]
             [cheshire.core :as json]))
 
-(defn vso-api-get-fn [token]
-  (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
-                             :accept :json :follow-redirects false})))
-
 (defn- validate-200-response [response]
   (if (= (:status response) 200)
     response
@@ -39,17 +35,26 @@
          (catch Exception e
            (log-exception "Bad Response when attempting to retrieve last two builds." e)))))
 
-(defn retrieve-build-info [vso-api-data build-definition-id]
+(defn- retrieve-build-info [vso-api-data build-definition-id]
   (let [[build previous-build] (retrieve-last-two-builds vso-api-data build-definition-id)
         commit-message (retrieve-commit-message vso-api-data build)]
     {:build build
      :previous-build previous-build
      :commit-message commit-message}))
 
-(defn retrieve-build-definitions [vso-api-data]
+(defn- retrieve-build-definitions [vso-api-data]
   (let [{:keys [get-fn account project]} vso-api-data
         build-definitions-url (str "https://" account  ".visualstudio.com/defaultcollection/"
                                    project "/_apis/build/definitions?api-version=2.0")]
     (try (-> (get-json-body get-fn build-definitions-url) :value)
          (catch Exception e
            (log-exception "Bad Response when attempting to retrieve build definitions." e)))))
+
+(defn vso-api-get-fn [token]
+  (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
+                             :accept :json :follow-redirects false})))
+
+(defn vso-api-fns [get-fn account project]
+  (let [vso-api-data {:get-fn get-fn :account account :project project}]
+    {:retrieve-build-info (partial retrieve-build-info vso-api-data)
+     :retrieve-build-definitions (partial retrieve-build-definitions vso-api-data)}))
