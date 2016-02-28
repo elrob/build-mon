@@ -10,12 +10,6 @@
 (defn- get-json-body [get-fn url]
   (-> url get-fn validate-200-response :body (json/parse-string true)))
 
-(defn- log-exception [message exception]
-  (prn "=========   ERROR   ==========")
-  (prn message)
-  (prn exception)
-  (prn "=============================="))
-
 (defn- retrieve-commit-message [vso-api-data build]
   (let [{:keys [get-fn account logger]} vso-api-data
         repository-id (-> build :repository :id)
