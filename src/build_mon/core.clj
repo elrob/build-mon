@@ -110,10 +110,17 @@
    :build-info
    (partial build-info vso-api)})
 
+(def logger {:log-exception (fn [message exception]
+                              (prn "=========   ERROR   ==========")
+                              (prn message)
+                              (prn exception)
+                              (prn "=============================="))})
+
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)
-      (let [vso-api (api/vso-api-fns (api/vso-api-get-fn vso-personal-access-token) vso-account vso-project)
+      (let [vso-api (api/vso-api-fns logger (api/vso-api-get-fn vso-personal-access-token)
+                                     vso-account vso-project)
             wrapped-handler (-> (handlers vso-api)
                                 wrap-routes
                                 (resource/wrap-resource "public")
