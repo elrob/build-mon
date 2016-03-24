@@ -11,10 +11,7 @@
 (defn- refresh-html [refresh-info]
   (list [:link {:rel "stylesheet" :href
                 "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
-        [:script
-         (str "window.buildDefinitionIds = [" (s/join "," (:build-definition-ids refresh-info)) "];")
-         (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
-        [:script {:src "/refresh.js" :defer "defer"}]))
+                [:meta {:http-equiv "refresh" :content (:refresh-interval refresh-info)}]))
 
 (defn- generate-build-panel [{:keys [build-definition-name build-definition-id build-number
                                     status-text state commit-message]}]
@@ -26,14 +23,18 @@
     [:div.commit-message commit-message]]])
 
 (defn generate-build-monitor-html [build-info-maps refresh-info favicon-path]
+    (let [failed-builds (filter #(= :failed (:state %)) build-info-maps)
+        non-success-builds (filter #(not= :succeeded (:state %)) build-info-maps)]
+    
   (hiccup/html
     [:head
      [:title "Build Monitor"]
      [:link#favicon {:rel "shortcut icon" :href favicon-path}]
      (when refresh-info (refresh-html refresh-info))
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
-    [:body {:class (str "panel-count-" (count build-info-maps))}
+    [:body {:class (str "panel-count-" (count non-success-builds))}
      refresh-icon
      error-modal
-     (map generate-build-panel build-info-maps)]))
+     [:div {:id "failed-build-count"} (str (count failed-builds) " of " (count build-info-maps) " builds failing")]
+     (map generate-build-panel non-success-builds)])))
 

@@ -55,6 +55,7 @@ function refreshBuildPanel(buildDefinitionId, refreshArrayIndex, refreshArray) {
       if (refreshArray.every(function(value){return value;})) {
         updateFavicon(refreshArray);
         hideRefreshIcon();
+        getElementsByTagName('body').className = 'panel-count-' + 
       }
     }
   };
