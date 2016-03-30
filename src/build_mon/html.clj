@@ -11,7 +11,10 @@
 (defn- refresh-html [refresh-info]
   (list [:link {:rel "stylesheet" :href
                 "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
-                [:meta {:http-equiv "refresh" :content (:refresh-interval refresh-info)}]))
+        [:script
+         (str "window.buildDefinitionIds = [" (s/join "," (:build-definition-ids refresh-info)) "];")
+         (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
+        [:script {:src "/refresh.js" :defer "defer"}]))
 
 (defn- now [] (java.util.Date.))
 
@@ -26,6 +29,7 @@
 
 (defn generate-build-monitor-html [build-info-maps refresh-info favicon-path]
 <<<<<<< HEAD
+<<<<<<< HEAD
     (let [failed-builds (filter #(= :failed (:state %)) build-info-maps)
         non-success-builds (filter #(not= :succeeded (:state %)) build-info-maps)]
     
@@ -37,12 +41,15 @@
         panel-height (/ 100 panel-rows)
         ]
 >>>>>>> Set 4 builds per row
+=======
+>>>>>>> parent of b40983f... Only show non-success builds
   (hiccup/html
     [:head
      [:title "Build Monitor"]
      [:link#favicon {:rel "shortcut icon" :href favicon-path}]
      (when refresh-info (refresh-html refresh-info))
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
+<<<<<<< HEAD
 <<<<<<< HEAD
     [:body {:class (str "panel-count-" (count non-success-builds))}
      refresh-icon
@@ -57,4 +64,10 @@
      error-modal
      (map generate-build-panel build-info-maps)])))
 >>>>>>> Set 4 builds per row
+=======
+    [:body {:class (str "panel-count-" (count build-info-maps))}
+     refresh-icon
+     error-modal
+     (map generate-build-panel build-info-maps)]))
+>>>>>>> parent of b40983f... Only show non-success builds
 
