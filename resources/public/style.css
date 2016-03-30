@@ -13,7 +13,7 @@ a{
   float: left;
   padding: 2%;
   box-shadow: 0 0 0.2em 0.1em black inset;
-  font-size: smaller;
+  font-size: 14px;
 }
 
 .build-panel > h1:first-child{
@@ -38,22 +38,6 @@ a{
 .in-progress-after-failed{
   background-color: orange;
   color: black;
-}
-
-.status{
-  font-size: 400%;
-}
-
-.build-definition-name{
-  font-size: 300%;
-}
-
-.build-number{
-  font-size: 300%;
-}
-
-.commit-message{
-  font-size: 300%;
 }
 
 .refresh-icon{
