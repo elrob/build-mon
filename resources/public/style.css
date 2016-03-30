@@ -10,13 +10,10 @@ a{
 
 .build-panel{
   float: left;
-  height: 100%;
-  width: 94%;
-  padding-left: 3%;
-  padding-right: 3%;
   box-shadow: 0 0 0.2em 0.1em black inset;
 }
 
+<<<<<<< HEAD
 .panel-count-0 {
     background-color: green;
 }
@@ -62,6 +59,8 @@ a{
   font-size: smaller;
 }
 
+=======
+>>>>>>> Set 4 builds per row
 .build-panel > h1:first-child{
   margin-top: 0;
 }

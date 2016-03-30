@@ -25,19 +25,36 @@
     [:div.commit-message commit-message]]])
 
 (defn generate-build-monitor-html [build-info-maps refresh-info favicon-path]
+<<<<<<< HEAD
     (let [failed-builds (filter #(= :failed (:state %)) build-info-maps)
         non-success-builds (filter #(not= :succeeded (:state %)) build-info-maps)]
     
+=======
+  (let [total-builds (count build-info-maps)
+        max-panels-per-row 4
+        panel-rows (/ total-builds max-panels-per-row)
+        panel-width 25
+        panel-height (/ 100 panel-rows)
+        ]
+>>>>>>> Set 4 builds per row
   (hiccup/html
     [:head
      [:title "Build Monitor"]
      [:link#favicon {:rel "shortcut icon" :href favicon-path}]
      (when refresh-info (refresh-html refresh-info))
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
+<<<<<<< HEAD
     [:body {:class (str "panel-count-" (count non-success-builds))}
      refresh-icon
      error-modal
      [:div {:id "failed-build-count"} (str (count failed-builds) " of " (count build-info-maps) " builds failing")]
      [:div {:id "last-update"} (str "Last Update: " (now))]
      (map generate-build-panel non-success-builds)])))
+=======
+     [:style (str ".build-panel { width:" panel-width "%; height:" panel-height "%;}")]
+    [:body
+     refresh-icon
+     error-modal
+     (map generate-build-panel build-info-maps)])))
+>>>>>>> Set 4 builds per row
 
