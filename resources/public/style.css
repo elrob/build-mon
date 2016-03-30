@@ -10,58 +10,11 @@ a{
 
 .build-panel{
   float: left;
+  padding: 3%;
   box-shadow: 0 0 0.2em 0.1em black inset;
   font-size: smaller;
 }
 
-<<<<<<< HEAD
-.panel-count-0 {
-    background-color: green;
-}
-
-#failed-build-count{
-    color: black;
-    font-size: 400%;
-}
-
-.panel-count-0 #failed-build-count{
-    color: white;
-}
-
-#last-update {
-    color: black;
-    font-size: 200%;   
-}
-
-.panel-count-0 #last-update {
-    color: white;
-}
-
-.panel-count-2 .build-panel{
-  width: 46%;
-  padding-left: 2%;
-  padding-right: 2%;
-  font-size: smaller;
-}
-
-.panel-count-3 .build-panel{
-  width: 31.33%;
-  width: calc(94% / 3);
-  padding-left: 1%;
-  padding-right: 1%;
-  font-size: smaller;
-}
-
-.panel-count-4 .build-panel{
-  height: 50%;
-  width: 46%;
-  padding-left: 2%;
-  padding-right: 2%;
-  font-size: smaller;
-}
-
-=======
->>>>>>> Set 4 builds per row
 .build-panel > h1:first-child{
   margin-top: 0;
 }
