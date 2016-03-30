@@ -1,6 +1,7 @@
 html, body{
   text-align: center;
   height: 100%;
+  width: 100%;
   margin: 0;
 }
 
@@ -10,33 +11,8 @@ a{
 
 .build-panel{
   float: left;
-  padding: 3%;
+  padding: 2%;
   box-shadow: 0 0 0.2em 0.1em black inset;
-<<<<<<< HEAD
-=======
-}
-
-.panel-count-2 .build-panel{
-  width: 46%;
-  padding-left: 2%;
-  padding-right: 2%;
-  font-size: smaller;
-}
-
-.panel-count-3 .build-panel{
-  width: 31.33%;
-  width: calc(94% / 3);
-  padding-left: 1%;
-  padding-right: 1%;
-  font-size: smaller;
-}
-
-.panel-count-4 .build-panel{
-  height: 50%;
-  width: 46%;
-  padding-left: 2%;
-  padding-right: 2%;
->>>>>>> parent of b40983f... Only show non-success builds
   font-size: smaller;
 }
 
