@@ -13,6 +13,8 @@
                 "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
                 [:meta {:http-equiv "refresh" :content (:refresh-interval refresh-info)}]))
 
+(defn- now [] (java.util.Date.))
+
 (defn- generate-build-panel [{:keys [build-definition-name build-definition-id build-number
                                     status-text state commit-message]}]
   [:a {:href (str "/build-definitions/" build-definition-id)}
@@ -36,5 +38,6 @@
      refresh-icon
      error-modal
      [:div {:id "failed-build-count"} (str (count failed-builds) " of " (count build-info-maps) " builds failing")]
+     [:div {:id "last-update"} (str "Last Update: " (now))]
      (map generate-build-panel non-success-builds)])))
 

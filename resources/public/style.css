@@ -30,6 +30,15 @@ a{
     color: white;
 }
 
+#last-update {
+    color: black;
+    font-size: 200%;   
+}
+
+.panel-count-0 #last-update {
+    color: white;
+}
+
 .panel-count-2 .build-panel{
   width: 46%;
   padding-left: 2%;
