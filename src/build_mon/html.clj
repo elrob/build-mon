@@ -22,7 +22,6 @@
                                     status-text state commit-message]}]
   [:a {:href (str "/build-definitions/" build-definition-id)}
    [:div {:id (str "build-definition-id-" build-definition-id) :class (str "build-panel " (name state))}
-    [:h1.status status-text]
     [:h1.build-definition-name build-definition-name]
     [:h1.build-number build-number]
     [:div.commit-message commit-message]]])
