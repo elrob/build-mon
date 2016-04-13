@@ -1,6 +1,5 @@
 function updateBuildPanel(buildPanel, buildData) {
   buildPanel.className = "build-panel " + buildData["state"];
-  buildPanel.getElementsByClassName("status")[0].innerHTML = buildData["status-text"];
   buildPanel.getElementsByClassName("build-definition-name")[0].innerHTML = buildData["build-definition-name"];
   buildPanel.getElementsByClassName("build-number")[0].innerHTML = buildData["build-number"];
   buildPanel.getElementsByClassName("commit-message")[0].innerHTML = buildData["commit-message"];
