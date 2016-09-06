@@ -69,6 +69,8 @@ function refreshBuild() {
   }
 }
 
+// TODO: add refresh stuff for releases
+
 window.onload=function(){
   window.setInterval(refreshBuild, window.refreshSeconds * 1000);
 };

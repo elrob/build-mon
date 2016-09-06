@@ -9,14 +9,14 @@ a{
   text-decoration: none;
 }
 
-.build-panel{
+.panel{
   float: left;
   padding: 2%;
   box-shadow: 0 0 0.2em 0.1em black inset;
   font-size: 14px;
 }
 
-.build-panel > h1:first-child{
+.panel > h1:first-child{
   margin-top: 0;
 }
 

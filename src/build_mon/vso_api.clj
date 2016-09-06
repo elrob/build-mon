@@ -2,6 +2,9 @@
   (:require [clj-http.client :as client]
             [cheshire.core :as json]))
 
+; GENERIC
+; =========================
+
 (defn- validate-200-response [response]
   (if (= (:status response) 200)
     response
@@ -9,6 +12,10 @@
 
 (defn- get-json-body [get-fn url]
   (-> url get-fn validate-200-response :body (json/parse-string true)))
+
+
+; BUILD
+; =========================
 
 (defn- retrieve-commit-message [vso-api-data build]
   (let [{:keys [get-fn account logger]} vso-api-data
@@ -44,6 +51,12 @@
     (try (-> (get-json-body get-fn build-definitions-url) :value)
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve build definitions." e)))))
+
+
+
+
+; API
+; =========================
 
 (defn vso-api-get-fn [token]
   (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
