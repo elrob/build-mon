@@ -255,6 +255,7 @@
         refresh-interval (refresh-interval (:query-params request))
         refresh-info (when refresh-interval
                        {:refresh-interval refresh-interval
+                        :build-definition-ids build-definition-ids-with-build-info
                         :release-definition-ids release-definition-ids-with-release-info})]
     (when (and (not-empty build-info-maps) (not-empty release-info-maps))
       (let [favicon-path (get-project-favicon-path build-info-maps release-info-maps)]
@@ -278,7 +279,7 @@
 
 ; ROUTING
 ; =========================
-; merging of releases and builds into "/" needs to happen here or before
+
 
 (def routes ["/" {"" :universal-monitor
                   ["release-definitions/" [#"\d+" :release-definition-id]] :release-definition-monitor

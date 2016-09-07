@@ -1,8 +1,26 @@
+
+
 html, body{
   text-align: center;
   height: 100%;
   width: 100%;
   margin: 0;
+}
+
+.build-definition-name, .release-definition-name {
+  font-size: 40px;
+  font-family: "Open Sans", Helvetica, sans-serif;
+}
+
+.build-number, .release-number {
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 30px;
+  font-style: italic;
+}
+
+.commit-message {
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 20px;
 }
 
 a{

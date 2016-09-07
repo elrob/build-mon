@@ -17,6 +17,7 @@
                 "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
         [:script
          (str "window.buildDefinitionIds = [" (s/join "," (:build-definition-ids refresh-info)) "];")
+         (str "window.releaseDefinitionIds = [" (s/join "," (:release-definition-ids refresh-info)) "];")
          (str "window.refreshSeconds = " (:refresh-interval refresh-info) ";")]
         [:script {:src "/refresh.js" :defer "defer"}]))
 
@@ -33,7 +34,9 @@
   [:a {:href (str "/release-definitions/" release-definition-id)}
    [:div {:id (str "release-definition-id-" release-definition-id) :class (str "panel " (name state))}
     [:h1.release-definition-name release-definition-name]
+    [:hr]
     [:h1.release-number release-number]
+    [:hr]
     ; [:div.commit-message commit-message]
     ]])
 
@@ -43,7 +46,10 @@
   [:a {:href (str "/build-definitions/" build-definition-id)}
    [:div {:id (str "build-definition-id-" build-definition-id) :class (str "panel " (name state))}
     [:h1.build-definition-name build-definition-name]
+    [:hr]
     [:h1.build-number build-number]
+    [:hr]
+    [:br]
     [:div.commit-message commit-message]]])
 
 (defn generate-build-monitor-html [build-info-maps refresh-info favicon-path]
@@ -84,7 +90,8 @@
     [:head
      [:title "Project Monitor"]
      [:link#favicon {:rel "shortcut icon" :href favicon-path}]
-     ; favicon path still to be sorted
+     [:link {:rel "stylesheet" :href "https://fonts.googleapis.com/css?family=Open+Sans|Roboto"}]
+
      (when refresh-info (refresh-html refresh-info))
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
      [:style (str ".panel { width:" panel-width "%; height:" panel-height "%;}")]
