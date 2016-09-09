@@ -1,4 +1,6 @@
-
+* {
+  box-sizing: border-box;
+}
 
 html, body{
   text-align: center;
@@ -7,8 +9,16 @@ html, body{
   margin: 0;
 }
 
+.build-tag {
+  background-color: blue;
+}
+
+.release-tag {
+  background-color: purple;
+}
+
 .build-definition-name, .release-definition-name {
-  font-size: 40px;
+  font-size: 35px;
   font-family: "Open Sans", Helvetica, sans-serif;
 }
 
@@ -18,7 +28,12 @@ html, body{
   font-style: italic;
 }
 
-.commit-message {
+.release-env-name {
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 30px;
+}
+
+.commit-message, .status-message {
   font-family: "Roboto", Helvetica, sans-serif;
   font-size: 20px;
 }
@@ -28,10 +43,35 @@ a{
 }
 
 .panel{
+  position: relative;
   float: left;
   padding: 2%;
-  box-shadow: 0 0 0.2em 0.1em black inset;
+  border-left: 2px solid black;
+  border-right: 2px solid black;
+  border-bottom: 2px solid black;
   font-size: 14px;
+}
+
+.tag {
+  color: black;
+  font-weight: bold;
+  font-family: "Open Sans", Helvetica, sans-serif;
+  font-size: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  margin-bottom: 1%;
+  border-top: 2px solid black;
+}
+
+.build {
+  background-color: #cedadd;
+}
+
+.release {
+   background-color: #7b9c98;
 }
 
 .panel > h1:first-child{
@@ -39,22 +79,22 @@ a{
 }
 
 .succeeded{
-  background-color: green;
+  background-color: #209422;
   color: white;
 }
 
 .failed{
-  background-color: red;
+  background-color: #c32727;
   color: white;
 }
 
 .in-progress{
-  background-color: yellow;
+  background-color: #f3de2c;
   color: black;
 }
 
 .in-progress-after-failed{
-  background-color: orange;
+  background-color: #fb6107;
   color: black;
 }
 

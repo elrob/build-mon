@@ -36,6 +36,7 @@
   (let [release-url (-> release :_links :self :href)
         get-fn (:get-fn vso-release-api-data)]
     (get-json-body get-fn release-url)))
+    ; merge environment property into return value
 
 
 (defn- retrieve-last-two-releases [vso-release-api-data release-definition-id]
