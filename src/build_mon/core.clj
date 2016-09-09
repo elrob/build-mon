@@ -1,11 +1,3 @@
-; TODO:
-; environments
-; commit message
-; status text
-
-
-
-
 (ns build-mon.core
   (:require [ring.adapter.jetty :as ring-jetty]
             [ring.middleware.resource :as resource]
@@ -36,6 +28,7 @@
 (def default-refresh-interval 20)
 (def minimum-refresh-interval 5)
 
+(defn- release-not-started? [release] (= (:status release) "notStarted"))
 (defn- release-succeeded? [release] (= (:status release) "succeeded"))
 (defn- release-in-progress? [release] (nil? (:status release)))
 (defn succeeded? [build] (= (:result build) "succeeded"))
@@ -45,6 +38,7 @@
     (cond (release-succeeded? release-env) :succeeded
           (and (release-in-progress? release-env) (release-succeeded? previous-release-env)) :in-progress
           (and (release-in-progress? release-env) (not (release-succeeded? previous-release-env))) :in-progress-after-failed
+          (release-not-started? release-env) :not-started
           :default :failed))
 
 (defn get-state [build previous-build]
@@ -81,10 +75,9 @@
         previous-environments (-> previous-release :environments)]
     (map (fn [env]
       (let [prev-env-release (filter (fn [prev-env]
-        (= (:name env) (:name prev-env)))
-        previous-environments)
+                                (= (:name env) (:name prev-env)))
+                                previous-environments)
         release-state (get-release-state env prev-env-release)]
-
         {:env-name (:name env) :state release-state}))
      environments)))
 
@@ -160,19 +153,12 @@
 
 (defn universal-monitor-for-definition-ids [vso-api vso-release-api request build-definition-ids release-definition-ids]
   (let [build-info-maps (remove nil? (map #(retrieve-build-info vso-api %) build-definition-ids))
-        build-definition-ids-with-build-info (remove nil? (map :build-definition-id build-info-maps))
-        release-info-maps (remove nil? (map #(retrieve-release-info vso-release-api %) release-definition-ids))
-        release-definition-ids-with-release-info (remove nil? (map :release-definition-id release-info-maps))
-        refresh-interval (refresh-interval (:query-params request))
-        refresh-info (when refresh-interval
-                       {:refresh-interval refresh-interval
-                        :build-definition-ids build-definition-ids-with-build-info
-                        :release-definition-ids release-definition-ids-with-release-info})]
+        release-info-maps (remove nil? (map #(retrieve-release-info vso-release-api %) release-definition-ids))]
     (when (and (not-empty build-info-maps) (not-empty release-info-maps))
       (let [favicon-path (get-project-favicon-path build-info-maps release-info-maps)]
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
-         :body (html/generate-universal-monitor-html build-info-maps release-info-maps refresh-info favicon-path)}))))
+         :body (html/generate-universal-monitor-html build-info-maps release-info-maps favicon-path)}))))
 
 
 ; RELEASE
@@ -182,9 +168,6 @@
         build-definitions ((:retrieve-build-definitions vso-api))
         build-definition-ids (map :id build-definitions)]
     (universal-monitor-for-definition-ids vso-api vso-release-api request build-definition-ids release-definition-ids)))
-
-; ============================================================================================
-; ============================================================================================
 
 
 
@@ -208,8 +191,6 @@
 
 ; HANDLERS
 ; =========================
-; build and release need to be packaged together and universal mon
-; needs to be called on them
 
 (defn handlers [vso-api vso-release-api]
   {:universal-monitor (partial universal-monitor vso-api vso-release-api)})
@@ -219,7 +200,6 @@
 ; STARTUP
 ; =========================
 
-; TODO: include release-api in wrapping
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)

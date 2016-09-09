@@ -53,25 +53,27 @@ a{
 }
 
 .tag {
-  color: black;
   font-weight: bold;
-  font-family: "Open Sans", Helvetica, sans-serif;
+  font-family: Helvetica, sans-serif;
   font-size: 20px;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 30px;
+  padding-top: 3px;
   margin-bottom: 1%;
   border-top: 2px solid black;
 }
 
 .build {
+  color: #624a6f;
   background-color: #cedadd;
 }
 
 .release {
-   background-color: #7b9c98;
+   color: #dfdb81;
+   background-color: #52494c;
 }
 
 .panel > h1:first-child{
@@ -96,6 +98,11 @@ a{
 .in-progress-after-failed{
   background-color: #fb6107;
   color: black;
+}
+
+.not-started {
+  background-color: #5ea7df;
+  color: white;
 }
 
 .refresh-icon{
