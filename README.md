@@ -8,9 +8,10 @@ A simple project monitor to display the status of Visual Studio Online builds an
 
 Install [Leiningen](http://leiningen.org/)
 
-Obtain a personal access token for Visual Studio Online with two permissions boxes ticked:
+Obtain a personal access token for Visual Studio Online with the following permissions boxes ticked:
 
-- **Build (read)** for dispaying build status
+- **Build (read)** for displaying status of builds
+- **Release (read)** for displaying status of releases
 - **Code (read)**  for displaying commit messages (optional)
 
 Run app:
