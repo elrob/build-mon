@@ -9,6 +9,23 @@
             [build-mon.html :as html])
   (:gen-class))
 
+
+; make private later
+(defn read-config [] (json/parse-string (slurp "config.json") true))
+
+; make private
+(defn last-active-environments? []
+  (let [config (read-config)]
+    (if (= "true" (:showLastActiveEnvironments config))
+      (:lastActiveEnvironments config)
+      false)))
+
+
+
+
+; ===================================================================
+
+
 (def logger {:log-exception (fn [message exception]
                               (prn "=========   ERROR   ==========")
                               (prn message)
@@ -118,8 +135,7 @@
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)
-      (let [
-            vso-api (api/vso-api-fns logger
+      (let [vso-api (api/vso-api-fns logger
                                     (api/vso-api-get-fn vso-personal-access-token)
                                      vso-account
                                      vso-project)

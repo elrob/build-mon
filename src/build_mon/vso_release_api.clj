@@ -2,6 +2,9 @@
   (:require [clj-http.client :as client]
             [cheshire.core :as json]))
 
+; public method for backtracking manual release envs goes here
+
+
 (defn vso-release-api-get-fn [token]
  (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
                             :accept :json :follow-redirects false})))
