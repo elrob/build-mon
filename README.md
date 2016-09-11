@@ -42,3 +42,9 @@ A Procfile is included for simple deployment to Heroku.
 Run tests:
 
     lein midje [:autotest]
+
+#### TODO:
+
+- reinstate error handling on front end (was removed from `refresh.js`) - VSO api sometimes goes down and it is useful to get some feedback in the browser
+- fix the favicon (at the moment it takes its cue from builds only)
+
