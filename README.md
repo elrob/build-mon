@@ -1,8 +1,10 @@
 # build-mon
 
+[![Build Status](https://snap-ci.com/elrob/build-mon/branch/master/build_image)](https://snap-ci.com/elrob/build-mon/branch/master)
+
 A simple project monitor to display the status of Visual Studio Online builds and releases.
 
-![Project Monitor Screenshot](project_mon_screenshot.png)
+![Screenshot](screenshot.png)
 
 ## Usage
 
