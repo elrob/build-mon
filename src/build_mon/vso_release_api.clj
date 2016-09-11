@@ -14,30 +14,10 @@
 (defn- get-json-body [get-fn url]
   (-> url get-fn validate-200-response :body (json/parse-string true)))
 
-
-
-
-
-(defn retrieve-commit-message [vso-release-api-data release]
-  (let [{:keys [get-fn account logger]} vso-release-api-data
-        repository-id (-> release :repository :id)
-        source-version (:sourceVersion release)
-        commit-url (str "https://" account ".visualstudio.com/defaultcollection/_apis/git/repositories/"
-                        repository-id "/commits/" source-version "?api-version=1.0")]
-    (try (-> (get-json-body get-fn commit-url) :comment)
-         (catch Exception e
-           ((:log-exception logger) "Bad Response when attempting to retrieve commit message." e)))))
-
-
-
-
-
 (defn- map-release-info [release vso-release-api-data]
   (let [release-url (-> release :_links :self :href)
         get-fn (:get-fn vso-release-api-data)]
     (get-json-body get-fn release-url)))
-    ; merge environment property into return value
-
 
 (defn- retrieve-last-two-releases [vso-release-api-data release-definition-id]
   (let [{:keys [get-fn account project logger]} vso-release-api-data
@@ -47,20 +27,13 @@
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve last two releases." e)))))
 
-
-
 (defn- retrieve-release-info [vso-release-api-data release-definition-id]
   (let [[release previous-release] (retrieve-last-two-releases vso-release-api-data release-definition-id)
         release-info (map-release-info release vso-release-api-data)
-        previous-release-info (map-release-info previous-release vso-release-api-data)
-        ;commit-message (retrieve-commit-message vso-release-api-data release)
-        ]
-    (when release ;when release-info ???
+        previous-release-info (map-release-info previous-release vso-release-api-data)]
+    (when release
       {:release release-info
-       :previous-release previous-release-info
-       ;:commit-message commit-message
-       })))
-
+       :previous-release previous-release-info})))
 
 (defn- retrieve-release-definitions [vso-release-api-data]
   (let [{:keys [get-fn account project logger]} vso-release-api-data
@@ -69,13 +42,6 @@
     (try (-> (get-json-body get-fn build-definitions-url) :value)
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve build definitions." e)))))
-
-
-
-
-
-; API
-; =========================
 
 (defn vso-release-api-fns [logger get-fn account project]
  (let [vso-release-api-data {:get-fn get-fn :account account :project project :logger logger}]
