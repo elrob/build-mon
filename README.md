@@ -4,7 +4,6 @@ A simple project monitor to display the status of Visual Studio Online builds an
 
 ![Project Monitor Screenshot](project_mon_screenshot.png)
 
-
 ## Usage
 
 Install [Leiningen](http://leiningen.org/)
