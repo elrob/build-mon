@@ -1,9 +1,12 @@
 (ns build-mon.vso-release-api
   (:require [clj-http.client :as client]
             [cheshire.core :as json]))
-
-; public method for backtracking manual release envs goes here
-
+; 
+; ; public method for backtracking manual release envs goes here
+; (get-last-active-release-for-environment [env-map]
+;
+;
+;   )
 
 (defn vso-release-api-get-fn [token]
  (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]

@@ -22,6 +22,23 @@
 
 
 
+; (defn- generate-release-environments-2 [release previous-release]
+;   (let [environments (-> release :environments)
+;         previous-environments (-> previous-release :environments)]
+;     (map (fn [env]
+;       (let [prev-env-release (filter (fn [prev-env]
+;                                 (= (:name env) (:name prev-env)))
+;                                 previous-environments)
+;         release-state (get-release-state env prev-env-release)
+;         env-map {:env-name (:name env) :state release-state} :last-active false]
+;
+;         ; if name is in json, amend env-map with status and id of :last-active release
+;         (if (last-active-environments?)
+;           (vso-release-api/get-last-active-release-for-environment env-map)
+;           env-map)))
+;      environments)))
+
+
 
 ; ===================================================================
 
@@ -32,7 +49,7 @@
                               (prn exception)
                               (prn "=============================="))})
 
-(def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded])
+(def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded :notStarted])
 
 (defn- release-not-started? [release] (= (:status release) "notStarted"))
 (defn- release-succeeded? [release] (= (:status release) "succeeded"))
