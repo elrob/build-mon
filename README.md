@@ -2,7 +2,7 @@
 
 [![Build Status](https://snap-ci.com/elrob/build-mon/branch/master/build_image)](https://snap-ci.com/elrob/build-mon/branch/master)
 
-A simple project monitor to display the status of Visual Studio Online builds and releases.
+A simple build monitor to display the status of Visual Studio Online builds and releases.
 
 ![Screenshot](screenshot.png)
 
@@ -47,4 +47,5 @@ Run tests:
 
 - reinstate error handling on front end (was removed from `refresh.js`) - VSO api sometimes goes down and it is useful to get some feedback in the browser
 - fix the favicon (at the moment it takes its cue from builds only)
+- use async methods for VSO api calls as the front end async calls have been removed
 
