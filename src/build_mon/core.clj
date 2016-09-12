@@ -79,24 +79,24 @@
     (when build
       (generate-build-info build previous-build commit-message))))
 
-(defn get-favicon-path [state]
+(defn construct-favicon-path [state]
   (str "/favicon_" (name state) ".ico"))
 
-(defn get-project-favicon-path [build-info-maps release-info-maps]
+(defn get-favicon-path [build-info-maps release-info-maps]
   (let [build-states (remove nil? (map :state build-info-maps))
         release-states (remove nil? (map :state release-info-maps))
         all-states (distinct (concat build-states release-states))
         sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
-    (get-favicon-path (first (sort-by sorting-map all-states)))))
+    (construct-favicon-path (first (sort-by sorting-map all-states)))))
 
 (defn universal-monitor-for-definition-ids [vso-api vso-release-api request build-definition-ids release-definition-ids]
   (let [build-info-maps (remove nil? (map #(retrieve-build-info vso-api %) build-definition-ids))
         release-info-maps (remove nil? (map #(retrieve-release-info vso-release-api %) release-definition-ids))]
     (when (and (not-empty build-info-maps) (not-empty release-info-maps))
-      (let [favicon-path (get-project-favicon-path build-info-maps release-info-maps)]
+      (let [favicon-path (get-favicon-path build-info-maps release-info-maps)]
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
-         :body (html/generate-universal-monitor-html build-info-maps release-info-maps favicon-path)}))))
+         :body (html/generate-build-monitor-html build-info-maps release-info-maps favicon-path)}))))
 
 (defn universal-monitor [vso-api vso-release-api request]
   (let [release-definitions ((:retrieve-release-definitions vso-release-api))

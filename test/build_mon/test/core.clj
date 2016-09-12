@@ -12,25 +12,13 @@
        (c/get-status-text failed-build) => "failed"
        (c/get-status-text in-progress-build) => "inProgress")
 
-(tabular
-    (facts "refresh-interval"
-           (c/refresh-interval ?params) => ?expected)
-    ?params               ?expected
-    {"refresh" nil}       c/default-refresh-interval
-    {"refresh" "30"}      30
-    {"refresh" "5"}       c/minimum-refresh-interval
-    {"refresh" "4"}       c/minimum-refresh-interval
-    {"refresh" "1"}       c/minimum-refresh-interval
-    {"refresh" "notInt"}  nil
-    {"refresh" "0.5"}     nil)
-
 (fact "there are no missing favicons"
       (let [filenames-in-public-directory (map str (.list (io/file (io/resource "public"))))
-            required-favicon-paths (map c/get-favicon-path c/states-ordered-worst-first)
+            required-favicon-paths (map c/construct-favicon-path c/states-ordered-worst-first)
             required-favicon-filenames (map #(.substring % 1) required-favicon-paths)]
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
-(facts "about get-favicon-path-for-multiple-build-definitions"
+(facts "about get-favicon-path"
        (let [succeeded {:state :succeeded}
              in-progress {:state :in-progress}
              in-progress-after-failed {:state :in-progress-after-failed}
@@ -38,10 +26,12 @@
              succeeded-favicon "/favicon_succeeded.ico"
              in-progress-favicon "/favicon_in-progress.ico"
              in-progress-after-failed-favicon "/favicon_in-progress-after-failed.ico"
-             failed-favicon "/favicon_failed.ico"]
+             failed-favicon "/favicon_failed.ico"
+             ; TODO
+             release-info-maps {}]
          (tabular
            (fact "worst state is used for favicon"
-                 (c/get-favicon-path-for-multiple-build-definitions ?build-info-maps) => ?favicon-path)
+                 (c/get-favicon-path ?build-info-maps release-info-maps) => ?favicon-path)
            ?build-info-maps                                        ?favicon-path
            [succeeded]                                             succeeded-favicon
            [in-progress]                                           in-progress-favicon

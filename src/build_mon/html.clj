@@ -46,7 +46,7 @@
 (defn- count-total-releases [release-info-maps]
   (reduce + (map (fn [rel-info-map] (count (:release-environments rel-info-map))) release-info-maps)))
 
-(defn generate-universal-monitor-html [build-info-maps release-info-maps favicon-path]
+(defn generate-build-monitor-html [build-info-maps release-info-maps favicon-path]
   (let [total-builds (count build-info-maps)
         total-releases (count-total-releases release-info-maps)
         max-panels-per-row 4

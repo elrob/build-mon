@@ -6,7 +6,7 @@
 (def account "VSO_ACCOUNT_NAME")
 (def project "VSO_PROJECT_NAME")
 
-(def logger {:log-exception (fn [message exception] (prn (str "Exception: " message)))})
+(def logger {:log-exception (fn [message exception] (println "Exception:" message))})
 
 (fact "vso-api-get-fn wraps an api token and returns a function which makes a HTTP GET request on a url"
       (let [result (api/vso-api-get-fn "VSO_API_TOKEN")]
