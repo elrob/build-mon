@@ -4,16 +4,17 @@
             [ring.middleware.params :as params]
             [bidi.bidi :as bidi]
             [cheshire.core :as json]
+            [clj-time.core :as t]
             [build-mon.vso-api :as api]
             [build-mon.vso-release-api :as release-api]
             [build-mon.html :as html])
   (:gen-class))
 
 (def logger {:log-exception (fn [message exception]
-                              (prn "=========   ERROR   ==========")
-                              (prn message)
-                              (prn exception)
-                              (prn "=============================="))})
+                              (println "=========   ERROR   ==========")
+                              (println message)
+                              (println exception)
+                              (println "=============================="))})
 
 (def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded])
 
@@ -25,11 +26,11 @@
 (defn in-progress? [build] (nil? (:result build)))
 
 (defn- get-release-state [release-env previous-release-env]
-    (cond (release-succeeded? release-env) :succeeded
-          (and (release-in-progress? release-env) (release-succeeded? previous-release-env)) :in-progress
-          (and (release-in-progress? release-env) (not (release-succeeded? previous-release-env))) :in-progress-after-failed
-          (release-not-started? release-env) :not-started
-          :default :failed))
+  (cond (release-succeeded? release-env) :succeeded
+        (and (release-in-progress? release-env) (release-succeeded? previous-release-env)) :in-progress
+        (and (release-in-progress? release-env) (not (release-succeeded? previous-release-env))) :in-progress-after-failed
+        (release-not-started? release-env) :not-started
+        :default :failed))
 
 (defn get-state [build previous-build]
   (cond (succeeded? build) :succeeded
@@ -44,18 +45,18 @@
   (let [environments (-> release :environments)
         previous-environments (-> previous-release :environments)]
     (map (fn [env]
-      (let [prev-env-release (filter (fn [prev-env]
-                                (= (:name env) (:name prev-env)))
-                                previous-environments)
-        release-state (get-release-state env prev-env-release)]
-        {:env-name (:name env) :state release-state}))
-     environments)))
+           (let [prev-env-release (filter (fn [prev-env]
+                                            (= (:name env) (:name prev-env)))
+                                          previous-environments)
+                 release-state (get-release-state env prev-env-release)]
+             {:env-name (:name env) :state release-state}))
+         environments)))
 
 (defn- generate-release-info [release previous-release]
-   {:release-definition-name (-> :releaseDefinition release :name)
-    :release-definition-id (:id release)
-    :release-number (:name release)
-    :release-environments (generate-release-environments release previous-release)})
+  {:release-definition-name (-> :releaseDefinition release :name)
+   :release-definition-id (:id release)
+   :release-number (:name release)
+   :release-environments (generate-release-environments release previous-release)})
 
 (defn generate-build-info [build previous-build commit-message]
   (let [state (get-state build previous-build)]
@@ -104,13 +105,16 @@
         build-definition-ids (map :id build-definitions)]
     (universal-monitor-for-definition-ids vso-api vso-release-api request build-definition-ids release-definition-ids)))
 
-(def routes ["/" {"" :universal-monitor}])
+(def routes ["/" :universal-monitor])
 
 (defn wrap-routes [handlers]
   (fn [request]
-    (when-let [route-method (bidi/match-route routes (:uri request))]
-      (when-let [handler (-> route-method :handler handlers)]
-        (handler (merge request (select-keys route-method [:route-params])))))))
+    (let [request-start-time (t/now)]
+      (when-let [route (bidi/match-route routes (:uri request))]
+        (when-let [handler (-> route :handler handlers)]
+          (let [response (handler (merge request (select-keys route [:route-params])))]
+            (println "Response time:" (t/in-seconds (t/interval request-start-time (t/now))) "seconds")
+            response))))))
 
 (defn handlers [vso-api vso-release-api]
   {:universal-monitor (partial universal-monitor vso-api vso-release-api)})
@@ -118,22 +122,18 @@
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)
-      (let [
-            vso-api (api/vso-api-fns logger
-                                    (api/vso-api-get-fn vso-personal-access-token)
+      (let [vso-api (api/vso-api-fns logger
+                                     (api/vso-api-get-fn vso-personal-access-token)
                                      vso-account
                                      vso-project)
             vso-release-api (release-api/vso-release-api-fns
-                                    logger
-                                    (release-api/vso-release-api-get-fn vso-personal-access-token)
-                                    vso-account
-                                    vso-project)
+                              logger
+                              (release-api/vso-release-api-get-fn vso-personal-access-token)
+                              vso-account
+                              vso-project)
             wrapped-handler (-> (handlers vso-api vso-release-api)
-                                    wrap-routes
-                                    (resource/wrap-resource "public")
-                                    (params/wrap-params))]
-        (println "==============================================================")
-        (println "Starting up... please enjoy your project monitor #repsforrufus")
-        (println "==============================================================")
+                                wrap-routes
+                                (resource/wrap-resource "public")
+                                (params/wrap-params))]
         (ring-jetty/run-jetty wrapped-handler {:port port}))
-      (prn "App didn't start due to missing parameters."))))
+      (println "App didn't start due to missing parameters."))))
