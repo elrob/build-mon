@@ -3,13 +3,11 @@
             [clojure.string :as s]))
 
 
-(defn- now [] (java.util.Date.))
-
 (def refresh-icon [:div.refresh-icon.hidden [:i.fa.fa-refresh.fa-spin.fa-3x]])
 
 (def error-modal [:div.error-modal.hidden
                   [:div.error-modal-background]
-                  [:h1.error-modal-text "Project Monitor Error"]])
+                  [:h1.error-modal-text "Build Monitor Error"]])
 
 ;RELEASE
 (defn- generate-release-env-panels [{:keys [release-definition-name
@@ -53,18 +51,17 @@
         total-releases (count-total-releases release-info-maps)
         max-panels-per-row 4
         panel-rows (Math/ceil (/ (+ total-builds total-releases) max-panels-per-row))
-        padding 2
         panel-width 25
         panel-height (/ 100 panel-rows)]
   (hiccup/html
     [:head
-     [:title "Project Monitor"]
+     [:title "Build Monitor"]
      [:link#favicon {:rel "shortcut icon" :href favicon-path}]
      [:link {:rel "stylesheet" :href "https://fonts.googleapis.com/css?family=Open+Sans|Roboto"}]
      [:link {:rel "stylesheet" :href
                    "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
      [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
-     [:style (str ".panel { width:" panel-width "%; height:" panel-height "%;}")]
+     [:style (str ".panel { width:" panel-width "%; height:" panel-height "%; }")]
     [:body
      refresh-icon
      error-modal
