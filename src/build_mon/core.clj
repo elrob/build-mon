@@ -2,6 +2,7 @@
   (:require [ring.adapter.jetty :as ring-jetty]
             [ring.middleware.resource :as resource]
             [ring.middleware.params :as params]
+            [ring.util.codec :as codec]
             [bidi.bidi :as bidi]
             [cheshire.core :as json]
             [clj-time.core :as t]
@@ -122,15 +123,11 @@
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]
     (if (and vso-account vso-project vso-personal-access-token port)
-      (let [vso-api (api/vso-api-fns logger
-                                     (api/vso-api-get-fn vso-personal-access-token)
-                                     vso-account
-                                     vso-project)
-            vso-release-api (release-api/vso-release-api-fns
-                              logger
-                              (release-api/vso-release-api-get-fn vso-personal-access-token)
-                              vso-account
-                              vso-project)
+      (let [account (codec/url-encode vso-account)
+            project (codec/url-encode vso-project)
+            get-fn (api/vso-api-get-fn vso-personal-access-token)
+            vso-api (api/vso-api-fns logger get-fn account project)
+            vso-release-api (release-api/vso-release-api-fns logger get-fn account project)
             wrapped-handler (-> (handlers vso-api vso-release-api)
                                 wrap-routes
                                 (resource/wrap-resource "public")

@@ -1,10 +1,6 @@
 (ns build-mon.vso-release-api
-  (:require [clj-http.client :as client]
+  (:require [org.httpkit.client :as http]
             [cheshire.core :as json]))
-
-(defn vso-release-api-get-fn [token]
-  (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
-                             :accept :json :follow-redirects false})))
 
 (defn- validate-200-response [response]
   (if (= (:status response) 200)
@@ -44,6 +40,7 @@
            ((:log-exception logger) "Bad Response when attempting to retrieve release definitions." e)))))
 
 (defn vso-release-api-fns [logger get-fn account project]
-  (let [vso-release-api-data {:get-fn get-fn :account account :project project :logger logger}]
+  (let [vso-release-api-data {:get-fn get-fn :logger logger
+                              :account account :project project}]
     {:retrieve-release-info (partial retrieve-release-info vso-release-api-data)
      :retrieve-release-definitions (partial retrieve-release-definitions vso-release-api-data)}))

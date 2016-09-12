@@ -1,5 +1,5 @@
 (ns build-mon.vso-api
-  (:require [clj-http.client :as client]
+  (:require [org.httpkit.client :as http]
             [cheshire.core :as json]))
 
 (defn- validate-200-response [response]
@@ -46,10 +46,11 @@
            ((:log-exception logger) "Bad Response when attempting to retrieve build definitions." e)))))
 
 (defn vso-api-get-fn [token]
-  (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
-                             :accept :json :follow-redirects false})))
+  (fn [url] @(http/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
+                            :accept :json :follow-redirects false})))
 
 (defn vso-api-fns [logger get-fn account project]
-  (let [vso-api-data {:get-fn get-fn :account account :project project :logger logger}]
+  (let [vso-api-data {:get-fn get-fn :logger logger
+                      :account account :project project}]
     {:retrieve-build-info (partial retrieve-build-info vso-api-data)
      :retrieve-build-definitions (partial retrieve-build-definitions vso-api-data)}))
