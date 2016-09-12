@@ -3,8 +3,8 @@
             [cheshire.core :as json]))
 
 (defn vso-release-api-get-fn [token]
- (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
-                            :accept :json :follow-redirects false})))
+  (fn [url] (client/get url {:basic-auth ["USERNAME CAN BE ANY VALUE" token]
+                             :accept :json :follow-redirects false})))
 
 (defn- validate-200-response [response]
   (if (= (:status response) 200)
@@ -22,7 +22,7 @@
 (defn- retrieve-last-two-releases [vso-release-api-data release-definition-id]
   (let [{:keys [get-fn account project logger]} vso-release-api-data
         last-two-releases-url (str "https://" account  ".vsrm.visualstudio.com/defaultcollection/"
-                                 project "/_apis/release/releases?api-version=3.0-preview.2&definitionId=" release-definition-id "&$top=2")]
+                                   project "/_apis/release/releases?api-version=3.0-preview.2&definitionId=" release-definition-id "&$top=2")]
     (try (-> (get-json-body get-fn last-two-releases-url) :value)
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve last two releases." e)))))
@@ -37,13 +37,13 @@
 
 (defn- retrieve-release-definitions [vso-release-api-data]
   (let [{:keys [get-fn account project logger]} vso-release-api-data
-        build-definitions-url (str "https://" account  ".vsrm.visualstudio.com/defaultcollection/"
-                                   project "/_apis/release/definitions?api-version=3.0-preview.2")]
-    (try (-> (get-json-body get-fn build-definitions-url) :value)
+        url (str "https://" account  ".vsrm.visualstudio.com/defaultcollection/"
+                 project "/_apis/release/definitions?api-version=3.0-preview.2")]
+    (try (-> (get-json-body get-fn url) :value)
          (catch Exception e
-           ((:log-exception logger) "Bad Response when attempting to retrieve build definitions." e)))))
+           ((:log-exception logger) "Bad Response when attempting to retrieve release definitions." e)))))
 
 (defn vso-release-api-fns [logger get-fn account project]
- (let [vso-release-api-data {:get-fn get-fn :account account :project project :logger logger}]
-   {:retrieve-release-info (partial retrieve-release-info vso-release-api-data)
-    :retrieve-release-definitions (partial retrieve-release-definitions vso-release-api-data)}))
+  (let [vso-release-api-data {:get-fn get-fn :account account :project project :logger logger}]
+    {:retrieve-release-info (partial retrieve-release-info vso-release-api-data)
+     :retrieve-release-definitions (partial retrieve-release-definitions vso-release-api-data)}))
