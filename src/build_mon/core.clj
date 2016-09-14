@@ -53,7 +53,7 @@
 
 (defn- release-not-started? [release] (= (:status release) "notStarted"))
 (defn- release-succeeded? [release] (= (:status release) "succeeded"))
-(defn- release-in-progress? [release] (nil? (:status release)))
+(defn- release-in-progress? [release] (= (:status release) "inProgress"))
 
 (defn succeeded? [build] (= (:result build) "succeeded"))
 (defn in-progress? [build] (nil? (:result build)))
