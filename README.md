@@ -47,7 +47,6 @@ Run tests:
 
 - reinstate error handling on front end (was removed from `refresh.js`) - VSO api sometimes goes down and it is useful to get some feedback in the browser
 - fix the favicon (at the moment it takes its cue from builds only)
-- use async methods for VSO api calls as the front end async calls have been removed
 - add any missing tests / update current tests to cover any untested functionality
 - add tests for releases stuff
 
