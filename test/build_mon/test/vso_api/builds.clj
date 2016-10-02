@@ -1,17 +1,12 @@
-(ns build-mon.test.vso-api
+(ns build-mon.test.vso-api.builds
   (:require [midje.sweet :refer :all]
             [clojure.java.io :as io]
-            [build-mon.vso-api :as api]))
+            [build-mon.vso-api.builds :as api]))
 
 (def account "VSO_ACCOUNT_NAME")
 (def project "VSO_PROJECT_NAME")
 
-(def logger {:log-exception (fn [message exception] (prn (str "Exception: " message)))})
-
-(fact "vso-api-get-fn wraps an api token and returns a function which makes a HTTP GET request on a url"
-      (let [result (api/vso-api-get-fn "VSO_API_TOKEN")]
-        (fn? result) => truthy
-        (result "NOT A REAL URL") => (throws java.net.MalformedURLException)))
+(def logger {:log-exception (fn [message _] (println "Test logger:" message))})
 
 (fact "vso-api-fns returns a map of the exposed functions"
       (let [get-fn (fn [url] "API RESPONSE")
