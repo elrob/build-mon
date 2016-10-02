@@ -10,7 +10,6 @@ A simple build monitor to display the status of Visual Studio Online builds and 
 ## Usage
 
 - Find your account name and project name from your Visual Studio Online url:
-
         https://{{VSO_ACCOUNT_NAME}}.visualstudio.com/{{VSO_PROJECT_NAME}}
 
 - Obtain a personal access token for Visual Studio Online with the following permissions boxes ticked:
@@ -24,7 +23,8 @@ A simple build monitor to display the status of Visual Studio Online builds and 
 
 - Install Java
 - Download the release jar file
-- Run app: `java -jar build-mon-0.1.0-standalone.jar "{{VSO_ACCOUNT_NAME}}" "{{VSO_PROJECT_NAME}}" "{{VSO_PERSONAL_ACCESS_TOKEN}}"`
+- Run app:
+        java -jar build-mon-0.1.0-standalone.jar "{{VSO_ACCOUNT_NAME}}" "{{VSO_PROJECT_NAME}}" "{{VSO_PERSONAL_ACCESS_TOKEN}}"
 - Visit [localhost:3000](http://localhost:3000)
 
 
@@ -32,7 +32,8 @@ A simple build monitor to display the status of Visual Studio Online builds and 
 
 - Install [Leiningen](http://leiningen.org/)
 - Clone this repository
-- Run app: `lein run "{{VSO_ACCOUNT_NAME}}" "{{VSO_PROJECT_NAME}}" "{{VSO_PERSONAL_ACCESS_TOKEN}}"`
+- Run app:
+        lein run "{{VSO_ACCOUNT_NAME}}" "{{VSO_PROJECT_NAME}}" "{{VSO_PERSONAL_ACCESS_TOKEN}}"
 - Visit [localhost:3000](http://localhost:3000)
 
 
