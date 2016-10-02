@@ -4,7 +4,6 @@
             [ring.middleware.params :as params]
             [ring.util.codec :as codec]
             [bidi.bidi :as bidi]
-            [cheshire.core :as json]
             [clj-time.core :as t]
             [build-mon.vso-api.builds :as builds-api]
             [build-mon.vso-api.releases :as releases-api]

@@ -1,18 +1,16 @@
 (ns build-mon.vso-api.releases
-  (:require [org.httpkit.client :as http]
-            [cheshire.core :as json]
-            [build-mon.vso-api.util :as util]))
+  (:require [build-mon.vso-api.util :as util]))
 
 (defn- retrieve-release [release vso-release-api-data]
   (when-let [release-url (-> release :_links :self :href)]
-    (util/get-json-body (:get-fn vso-release-api-data) release-url)))
+    ((:get-fn vso-release-api-data) release-url)))
 
 (defn- retrieve-last-two-releases [vso-release-api-data release-definition-id]
   (let [{:keys [get-fn account project]} vso-release-api-data
         last-two-releases-url (str "https://" account  ".vsrm.visualstudio.com/defaultcollection/"
                                    project "/_apis/release/releases?api-version=3.0-preview.2&$top=2"
                                    "&definitionId=" release-definition-id)]
-    (-> (util/get-json-body get-fn last-two-releases-url) :value)))
+    (-> (get-fn last-two-releases-url) :value)))
 
 (defn- retrieve-release-info [vso-release-api-data release-definition-id]
   (try (let [last-two-releases (retrieve-last-two-releases vso-release-api-data release-definition-id)
@@ -27,7 +25,7 @@
   (let [{:keys [get-fn account project logger]} vso-release-api-data
         url (str "https://" account  ".vsrm.visualstudio.com/defaultcollection/"
                  project "/_apis/release/definitions?api-version=3.0-preview.2")]
-    (try (-> (util/get-json-body get-fn url) :value)
+    (try (-> (get-fn url) :value)
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve release definitions." e)))))
 
