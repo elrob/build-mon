@@ -11,17 +11,6 @@
             [build-mon.html :as html])
   (:gen-class))
 
-
-; make private later
-(defn read-config [] (json/parse-string (slurp "config.json") true))
-
-; make private
-(defn last-active-environments? []
-  (let [config (read-config)]
-    (if (= "true" (:showLastActiveEnvironments config))
-      (:lastActiveEnvironments config)
-      false)))
-
 (def logger {:log-exception (fn [message exception]
                               (println "=========   ERROR   ==========")
                               (println message)
