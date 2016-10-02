@@ -22,23 +22,16 @@
 (facts "retrieve-release-definitions"
        (let [expected-url (str "https://" account ".vsrm.visualstudio.com/defaultcollection/" project
                                "/_apis/release/definitions?api-version=3.0-preview.2")]
-         (fact "calls VSO api, parses response and extracts release definitions"
-               (let [stub-json-body "{\"count\":2,\"value\":[
-                                    {\"A_RELEASE_DEFINITION_KEY\": \"A_VALUE\"},
-                                    {\"ANOTHER_RELEASE_DEFINITION_KEY\": \"ANOTHER_VALUE\"}]}"
-                     stub-response {:status 200 :body stub-json-body}
-                     get-fn-stubbed (get-fn-stub-requests {expected-url stub-response})
+         (fact "calls VSO api and extracts release definitions"
+               (let [a-release-definition {:a-release-definition "some-value"}
+                     another-release-definition {:another-release-definition "some-other-value"}
+                     stub-response-body {:count 2 :value [a-release-definition another-release-definition]}
+                     get-fn-stubbed (get-fn-stub-requests {expected-url stub-response-body})
                      api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-release-definitions api-fns)) => [{:A_RELEASE_DEFINITION_KEY "A_VALUE"}
-                                                               {:ANOTHER_RELEASE_DEFINITION_KEY "ANOTHER_VALUE"}]))
-         (fact "when response status is not 200, returns nil"
+                 ((:retrieve-release-definitions api-fns)) => [a-release-definition another-release-definition]))
+         (fact "when get-fn throws exception, returns nil"
                (let [stub-response {:status 503}
-                     get-fn-stubbed (get-fn-stub-requests {expected-url stub-response})
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-release-definitions api-fns)) => nil))
-         (fact "when response body cannot be parsed as JSON, returns nil"
-               (let [stub-response {:status 200 :body "~~INVALID_JSON~~"}
-                     get-fn-stubbed (get-fn-stub-requests {expected-url stub-response})
+                     get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
                      api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-release-definitions api-fns)) => nil))))
 
@@ -47,61 +40,37 @@
              expected-releases-url (str "https://" account ".vsrm.visualstudio.com/defaultcollection/" project
                                         "/_apis/release/releases?api-version=3.0-preview.2&$top=2&definitionId="
                                         release-definition-id)]
-         (fact "calls VSO api for releases, parses responses and extracts release info"
+         (fact "calls VSO api for last two releases, then for the individual releases and extracts release info"
                (let [release-url "https://SOME_RELEASE.URL"
                      previous-release-url "https://SOME_OTHER_RELEASE.URL"
-                     stub-releases-body (str "{\"count\":2,\"value\":["
-                                             "{\"_links\":{\"self\":{\"href\": \"" release-url "\"}}},"
-                                             "{\"_links\":{\"self\":{\"href\": \"" previous-release-url "\"}}}]}")
-                     stub-releases-response {:status 200 :body stub-releases-body}
+                     stub-releases-response {:count 2 :value [{:_links {:self {:href release-url}}}
+                                                              {:_links {:self {:href previous-release-url}}}]}
+                     a-release {:a 1}
+                     a-previous-release {:b 2}
                      get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-releases-response
-                                                           release-url {:status 200 :body "{\"a\": 1}"}
-                                                           previous-release-url {:status 200 :body "{\"b\": 2}"}})
+                                                           release-url a-release
+                                                           previous-release-url a-previous-release})
                      api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-release-info api-fns) release-definition-id)
-                 => {:release {:a 1} :previous-release {:b 2}}))
+                 => {:release a-release
+                     :previous-release a-previous-release}))
          (fact "when there is no previous release, returns current release and nil previous release"
                (let [release-url "https://SOME_RELEASE.URL"
-                     stub-releases-body (str "{\"count\":1,\"value\":["
-                                             "{\"_links\":{\"self\":{\"href\": \"" release-url "\"}}}]}")
-                     stub-releases-response {:status 200 :body stub-releases-body}
+                     stub-releases-response {:count 1 :value [{:_links {:self {:href release-url}}}]}
+                     a-release {:a 1}
                      get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-releases-response
-                                                           release-url {:status 200 :body "{\"a\": 1}"}})
+                                                           release-url a-release})
                      api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-release-info api-fns) release-definition-id)
                  => {:release {:a 1} :previous-release nil}))
          (fact "when there are no releases, returns nil current and previous release"
-               (let [stub-releases-body  "{\"count\":0,\"value\":[]}"
-                     stub-releases-response {:status 200 :body stub-releases-body}
+               (let [stub-releases-response {:count 0 :value []}
                      get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-releases-response})
                      api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-release-info api-fns) release-definition-id)
                  => {:release nil :previous-release nil}))
-         (fact "when releases response status is not 200, returns nil"
+         (fact "when get-fn throws exception, returns nil"
                (let [stub-response {:status 503}
-                     get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-response})
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-release-info api-fns) release-definition-id) => nil))
-         (fact "when releases response cannot be parsed as JSON, returns nil"
-                 (let [stub-response {:status 200 :body "~~INVALID_JSON~~"}
-                       get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-response})
-                       api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-release-info api-fns) release-definition-id) => nil))
-         (fact "when any release response is not 200, returns nil"
-               (let [release-url "https://SOME_RELEASE.URL"
-                     stub-releases-body (str "{\"count\":1,\"value\":["
-                                             "{\"_links\":{\"self\":{\"href\": \"" release-url "\"}}}]}")
-                     stub-releases-response {:status 200 :body stub-releases-body}
-                     get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-releases-response
-                                                           release-url {:status 503}})
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-release-info api-fns) release-definition-id) => nil))
-         (fact "when any release response cannot be parsed as JSON, returns nil"
-               (let [release-url "https://SOME_RELEASE.URL"
-                     stub-releases-body (str "{\"count\":1,\"value\":["
-                                             "{\"_links\":{\"self\":{\"href\": \"" release-url "\"}}}]}")
-                     stub-releases-response {:status 200 :body stub-releases-body}
-                     get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-releases-response
-                                                           release-url {:status 200 :body "~~INVALID_JSON~~"}})
+                     get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
                      api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-release-info api-fns) release-definition-id) => nil))))

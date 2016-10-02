@@ -1,24 +1,28 @@
 (ns build-mon.vso-api.builds
-  (:require [org.httpkit.client :as http]
-            [cheshire.core :as json]
-            [build-mon.vso-api.util :as util]))
+  (:require [clostache.parser :as c]))
+
+(def build-definitions-url
+  "https://{{account}}.visualstudio.com/defaultcollection/{{project}}/_apis/build/definitions?api-version=2.0")
+
+(def last-two-builds-url
+  "https://{{account}}.visualstudio.com/defaultcollection/{{project}}/_apis/build/builds?api-version=2.0&$top=2&definitions={{build}}")
+
+(def commit-url
+  "https://{{account}}.visualstudio.com/defaultcollection/_apis/git/repositories/{{repo}}/commits/{{version}}?api-version=1.0")
 
 (defn- retrieve-commit-message [vso-api-data build]
   (let [{:keys [get-fn account logger]} vso-api-data
-        repository-id (-> build :repository :id)
-        source-version (:sourceVersion build)
-        commit-url (str "https://" account ".visualstudio.com/defaultcollection/_apis/git/repositories/"
-                        repository-id "/commits/" source-version "?api-version=1.0")]
-    (try (-> (util/get-json-body get-fn commit-url) :comment)
+        url (c/render commit-url {:account account
+                                  :repo (-> build :repository :id)
+                                  :version (:sourceVersion build)})]
+    (try (-> (get-fn url) :comment)
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve commit message." e)))))
 
 (defn- retrieve-last-two-builds [vso-api-data build-definition-id]
   (let [{:keys [get-fn account project logger]} vso-api-data
-        last-two-builds-url (str "https://" account  ".visualstudio.com/defaultcollection/"
-                                 project "/_apis/build/builds?api-version=2.0&$top=2"
-                                 "&definitions=" build-definition-id)]
-    (try (-> (util/get-json-body get-fn last-two-builds-url) :value)
+        url (c/render last-two-builds-url {:account account :project project :build build-definition-id})]
+    (try (-> (get-fn url) :value)
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve last two builds." e)))))
 
@@ -31,10 +35,9 @@
        :commit-message commit-message})))
 
 (defn- retrieve-build-definitions [vso-api-data]
-  (let [{:keys [get-fn account project logger]} vso-api-data
-        build-definitions-url (str "https://" account  ".visualstudio.com/defaultcollection/"
-                                   project "/_apis/build/definitions?api-version=2.0")]
-    (try (-> (util/get-json-body get-fn build-definitions-url) :value)
+  (let [{:keys [get-fn logger]} vso-api-data
+        url (c/render build-definitions-url vso-api-data)]
+    (try (-> (get-fn url) :value)
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve build definitions." e)))))
 

@@ -22,23 +22,15 @@
 (facts "retrieve-build-definitions"
        (let [expected-url (str "https://" account ".visualstudio.com/defaultcollection/" project
                                "/_apis/build/definitions?api-version=2.0")]
-         (fact "calls VSO api, parses response and extracts build definitions"
-               (let [stub-json-body "{\"count\":2,\"value\":[
-                                    {\"A_BUILD_DEFINITION_KEY\": \"A_VALUE\"},
-                                    {\"ANOTHER_BUILD_DEFINITION_KEY\": \"ANOTHER_VALUE\"}]}"
-                     stub-response {:status 200 :body stub-json-body}
-                     get-fn-stubbed (get-fn-stub-requests {expected-url stub-response})
+         (fact "calls VSO api for build defitions and returns the value of the response"
+               (let [some-build-definitions [:some-build-definition :some-other-build-definition]
+                     stub-response-body {:value some-build-definitions}
+                     get-fn-stubbed (get-fn-stub-requests {expected-url stub-response-body})
                      vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-build-definitions vso-api)) => [{:A_BUILD_DEFINITION_KEY "A_VALUE"}
-                                                             {:ANOTHER_BUILD_DEFINITION_KEY "ANOTHER_VALUE"}]))
-         (fact "when response status is not 200, returns nil"
+                 ((:retrieve-build-definitions vso-api)) => some-build-definitions))
+         (fact "when get-fn throws exception, returns nil"
                (let [stub-response {:status 503}
-                     get-fn-stubbed (get-fn-stub-requests {expected-url stub-response})
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-build-definitions vso-api)) => nil))
-         (fact "when response body cannot be parsed as JSON, returns nil"
-               (let [stub-response {:status 200 :body "~~INVALID_JSON~~"}
-                     get-fn-stubbed (get-fn-stub-requests {expected-url stub-response})
+                     get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
                      vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-build-definitions vso-api)) => nil))))
 
@@ -52,63 +44,40 @@
              expected-commit-url (str "https://" account
                                       ".visualstudio.com/defaultcollection/_apis/git/repositories/"
                                       repository-id "/commits/" source-version "?api-version=1.0")
-             stub-builds-body (str "{\"count\":2,\"value\":["
-                                   "{\"repository\": {\"id\": \"" repository-id "\"},"
-                                   "\"sourceVersion\": \"" source-version "\"},"
-                                   "{\"some_previous_build_key\": \"some_value\"}]}")
-             stub-builds-response {:status 200 :body stub-builds-body}]
-         (fact "calls VSO api for builds and commit message, parses responses and extracts build info"
-               (let [stub-commit-response {:status 200 :body "{\"comment\": \"SOME COMMIT MESSAGE\"}"}
-                     get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-builds-response
-                                                           expected-commit-url stub-commit-response})
+             some-build {:repository {:id repository-id} :sourceVersion source-version}
+             some-previous-build {:some-previous-build-key :some-other-value}
+             stub-build-response-body {:count 2 :value [some-build some-previous-build]}]
+         (fact "calls VSO api for builds and commit message and extracts build info"
+               (let [stub-commit-response-body {:comment "SOME COMMIT MESSAGE"}
+                     get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-build-response-body
+                                                           expected-commit-url stub-commit-response-body})
                      vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-build-info vso-api) build-definition-id)
-                 => {:build {:repository {:id repository-id}
-                             :sourceVersion source-version}
-                     :previous-build {:some_previous_build_key "some_value"}
+                 => {:build some-build
+                     :previous-build some-previous-build
                      :commit-message "SOME COMMIT MESSAGE"}))
          (fact "when there is no previous build, returns current build and a nil previous build"
-               (let [stub-builds-body-with-no-previous-build
-                     (str "{\"count\":1,\"value\":["
-                          "{\"repository\": {\"id\": \"" repository-id "\"},"
-                          "\"sourceVersion\": \"" source-version "\"}]}")
-                     stub-builds-response {:status 200 :body stub-builds-body-with-no-previous-build}
-                     stub-commit-response {:status 200 :body "{\"comment\": \"SOME COMMIT MESSAGE\"}"}
-                     get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-builds-response
-                                                           expected-commit-url stub-commit-response})
+               (let [stub-builds-body-with-one-build {:count 1 :value [some-build]}
+                     stub-commit-response-body {:comment "SOME COMMIT MESSAGE"}
+                     get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-builds-body-with-one-build
+                                                           expected-commit-url stub-commit-response-body})
                      vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-build-info vso-api) build-definition-id)
-                 => {:build {:repository {:id repository-id}
-                             :sourceVersion source-version}
+                 => {:build some-build
                      :previous-build nil
                      :commit-message "SOME COMMIT MESSAGE"}))
-         (fact "when builds response status is not 200, returns nil"
-               (let [stub-builds-response {:status 503}
-                     get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-builds-response})
+         (fact "when get-fn throws exception for builds request, returns nil"
+               (let [stub-response {:status 503}
+                     get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
                      vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-build-info vso-api) build-definition-id) => nil))
-         (fact "when builds response cannot be parsed as JSON, returns nil"
-               (let [stub-builds-response {:status 200 :body "~~INVALID_JSON~~"}
-                     get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-builds-response})
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-build-info vso-api) build-definition-id) => nil))
-         (fact "when commit response status is not 200, returns builds with a nil commit message"
+         (fact "when get-fn throws exception for commit request, returns builds with a nil commit message"
                (let [stub-commit-response {:status 503}
-                     get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-builds-response
-                                                           expected-commit-url stub-commit-response})
+                     get-fn-stubbed (fn [url] (if (= url expected-builds-url)
+                                                stub-build-response-body
+                                                (throw (Exception. "some exception"))))
                      vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
                  ((:retrieve-build-info vso-api) build-definition-id) =>
-                 {:build {:repository {:id repository-id}
-                          :sourceVersion source-version}
-                  :previous-build {:some_previous_build_key "some_value"}
-                  :commit-message nil}))
-         (fact "when commit response cannot be parsed as JSON, returns builds with a nil commit message"
-               (let [stub-commit-response {:status 200 :body "~~INVALID_JSON~~"}
-                     get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-builds-response
-                                                           expected-commit-url stub-commit-response})
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-build-info vso-api) build-definition-id) =>
-                 {:build {:repository {:id repository-id}
-                          :sourceVersion source-version}
-                  :previous-build {:some_previous_build_key "some_value"}
+                 {:build some-build
+                  :previous-build some-previous-build
                   :commit-message nil}))))
