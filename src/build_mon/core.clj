@@ -6,8 +6,9 @@
             [bidi.bidi :as bidi]
             [cheshire.core :as json]
             [clj-time.core :as t]
-            [build-mon.vso-api :as api]
-            [build-mon.vso-release-api :as release-api]
+            [build-mon.vso-api.builds :as builds-api]
+            [build-mon.vso-api.releases :as releases-api]
+            [build-mon.vso-api.util :as api-util]
             [build-mon.html :as html])
   (:gen-class))
 
@@ -125,9 +126,9 @@
     (if (and vso-account vso-project vso-personal-access-token port)
       (let [account (codec/url-encode vso-account)
             project (codec/url-encode vso-project)
-            get-fn (api/vso-api-get-fn vso-personal-access-token)
-            vso-api (api/vso-api-fns logger get-fn account project)
-            vso-release-api (release-api/vso-release-api-fns logger get-fn account project)
+            get-fn (api-util/vso-api-get-fn vso-personal-access-token)
+            vso-api (builds-api/vso-api-fns logger get-fn account project)
+            vso-release-api (releases-api/vso-release-api-fns logger get-fn account project)
             wrapped-handler (-> (handlers vso-api vso-release-api)
                                 wrap-routes
                                 (resource/wrap-resource "public")
