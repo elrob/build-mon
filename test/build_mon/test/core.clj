@@ -18,6 +18,13 @@
             required-favicon-filenames (map #(.substring % 1) required-favicon-paths)]
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
+(fact "get-release-states returns list of release states"
+       (let [release-maps [{:release-environments [{:state :in-progress}]}
+                            {:release-environments [{:state :succeeded}
+                                                    {:state :not-started}]}]
+             status-list [:in-progress, :succeeded, :not-started]]
+             (c/get-release-states release-maps) => status-list))
+
 (facts "about get-favicon-path"
        (let [succeeded {:state :succeeded}
              in-progress {:state :in-progress}
@@ -27,10 +34,9 @@
              in-progress-favicon "/favicon_in-progress.ico"
              in-progress-after-failed-favicon "/favicon_in-progress-after-failed.ico"
              failed-favicon "/favicon_failed.ico"
-             ; TODO
-             release-info-maps {}]
+             release-info-maps []]
          (tabular
-           (fact "worst state is used for favicon"
+           (fact "worst state is used for overall favicon"
                  (c/get-favicon-path ?build-info-maps release-info-maps) => ?favicon-path)
            ?build-info-maps                                        ?favicon-path
            [succeeded]                                             succeeded-favicon
