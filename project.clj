@@ -10,7 +10,8 @@
                  [bidi "1.24.0"]
                  [http-kit "2.1.18"]
                  [cheshire "5.5.0"]
-                 [hiccup "1.0.5"]]
+                 [hiccup "1.0.5"]
+                 [de.ubercode.clostache/clostache "1.4.0"]]
   :main ^:skip-aot build-mon.core
   :resource-paths ["resources"]
   :target-path "target/%s"
