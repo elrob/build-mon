@@ -29,7 +29,7 @@
                               (println exception)
                               (println "=============================="))})
 
-(def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded :notStarted])
+(def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded :not-started])
 
 (defn- release-not-started? [release] (= (:status release) "notStarted"))
 (defn- release-succeeded? [release] (= (:status release) "succeeded"))
