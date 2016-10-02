@@ -1,4 +1,4 @@
-(defproject build-mon "0.1.0-SNAPSHOT"
+(defproject build-mon "0.1.0"
   :description "A simple build monitor to monitor Visual Studio Online builds"
   :url "localhost:3000"
   :license {:name "Eclipse Public License"
