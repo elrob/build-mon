@@ -1,6 +1,5 @@
 (ns build-mon.vso-api.builds
-  (:require [clostache.parser :as c]
-            [build-mon.vso-api.util :as util]))
+  (:require [clostache.parser :as c]))
 
 (def build-definitions-url
   "https://{{account}}.visualstudio.com/defaultcollection/{{project}}/_apis/build/definitions?api-version=2.0")
