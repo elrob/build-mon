@@ -31,7 +31,7 @@ A simple build monitor to display the status of Visual Studio Online builds and 
 - Visit [localhost:3000](http://localhost:3000)
 
 
-#### Run with leiningen
+#### Run with Leiningen
 
 - Install [Leiningen](http://leiningen.org/)
 - Clone this repository
