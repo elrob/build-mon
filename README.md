@@ -61,6 +61,10 @@ Run tests:
 
     lein midje [:autotest]
 
+Run code analysis and tests:
+
+    lein test
+
 
 #### TODO:
 
