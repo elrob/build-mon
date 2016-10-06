@@ -15,7 +15,11 @@
   :main ^:skip-aot build-mon.core
   :resource-paths ["resources"]
   :target-path "target/%s"
-  :profiles {:dev {:dependencies [[midje "1.8.2"]
+  :profiles {:dev {:aliases {"test" ["do" "clean"
+                                     ["cljfmt" "check"]
+                                     ["eastwood"]
+                                     ["midje"]]}
+                   :dependencies [[midje "1.8.2"]
                                   [http-kit.fake "0.2.2"]]
                    :plugins  [[lein-midje "3.2"]
                              [lein-cljfmt "0.5.6"]
