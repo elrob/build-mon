@@ -45,14 +45,14 @@
 (defn- generate-release-environments [release previous-release]
   (let [environments (-> release :environments)
         previous-environments (-> previous-release :environments)]
-      (map (fn [env]
+    (map (fn [env]
       ; need to explicitly grab first item here because filter returns a collection
-             (let [prev-env-release (first (filter (fn [prev-env]
-                                              (= (:name env) (:name prev-env)))
-                                            previous-environments))
-                   release-state (get-release-state env prev-env-release)]
-               {:env-name (:name env) :state release-state}))
-           environments)))
+           (let [prev-env-release (first (filter (fn [prev-env]
+                                                   (= (:name env) (:name prev-env)))
+                                                 previous-environments))
+                 release-state (get-release-state env prev-env-release)]
+             {:env-name (:name env) :state release-state}))
+         environments)))
 
 (defn- generate-release-info [release previous-release]
   {:release-definition-name (-> :releaseDefinition release :name)
@@ -85,8 +85,8 @@
   (str "/favicon_" (name state) ".ico"))
 
 (defn get-release-states [release-info-maps]
-    (let [release-envs (flatten (map :release-environments release-info-maps))]
-         (map :state release-envs)))
+  (let [release-envs (flatten (map :release-environments release-info-maps))]
+    (map :state release-envs)))
 
 (defn get-build-states [build-info-maps]
   (remove nil? (map :state build-info-maps)))

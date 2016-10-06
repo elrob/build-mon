@@ -19,11 +19,11 @@
         filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
 
 (fact "get-release-states returns list of release states"
-       (let [release-maps [{:release-environments [{:state :in-progress}]}
-                            {:release-environments [{:state :succeeded}
-                                                    {:state :not-started}]}]
-             status-list [:in-progress, :succeeded, :not-started]]
-             (c/get-release-states release-maps) => status-list))
+      (let [release-maps [{:release-environments [{:state :in-progress}]}
+                          {:release-environments [{:state :succeeded}
+                                                  {:state :not-started}]}]
+            status-list [:in-progress, :succeeded, :not-started]]
+        (c/get-release-states release-maps) => status-list))
 
 (facts "about get-favicon-path"
        (let [succeeded {:state :succeeded}
@@ -36,18 +36,18 @@
              failed-favicon "/favicon_failed.ico"
              release-info-maps []]
          (tabular
-           (fact "worst state is used for overall favicon"
-                 (c/get-favicon-path ?build-info-maps release-info-maps) => ?favicon-path)
-           ?build-info-maps                                        ?favicon-path
-           [succeeded]                                             succeeded-favicon
-           [in-progress]                                           in-progress-favicon
-           [in-progress-after-failed]                              in-progress-after-failed-favicon
-           [failed]                                                failed-favicon
-           [succeeded in-progress]                                 in-progress-favicon
-           [in-progress succeeded]                                 in-progress-favicon
-           [in-progress in-progress-after-failed]                  in-progress-after-failed-favicon
-           [in-progress-after-failed failed]                       failed-favicon
-           [succeeded in-progress in-progress-after-failed failed] failed-favicon)))
+          (fact "worst state is used for overall favicon"
+                (c/get-favicon-path ?build-info-maps release-info-maps) => ?favicon-path)
+          ?build-info-maps                                        ?favicon-path
+          [succeeded]                                             succeeded-favicon
+          [in-progress]                                           in-progress-favicon
+          [in-progress-after-failed]                              in-progress-after-failed-favicon
+          [failed]                                                failed-favicon
+          [succeeded in-progress]                                 in-progress-favicon
+          [in-progress succeeded]                                 in-progress-favicon
+          [in-progress in-progress-after-failed]                  in-progress-after-failed-favicon
+          [in-progress-after-failed failed]                       failed-favicon
+          [succeeded in-progress in-progress-after-failed failed] failed-favicon)))
 
 (facts "about generating-build-info"
        (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build" :id 10}}]
@@ -60,12 +60,12 @@
              :state :succeeded})
 
        (tabular
-         (fact "correct status-text and state are set based on current and previous build"
-               (let [build-info (c/generate-build-info ?build ?previous "commit message")]
-                 (:status-text build-info) => ?status-text
-                 (:state build-info) => ?state))
-         ?build             ?previous         ?status-text   ?state
-         succeeded-build    :any              "succeeded"    :succeeded
-         failed-build       :any              "failed"       :failed
-         in-progress-build  succeeded-build   "inProgress"   :in-progress
-         in-progress-build  failed-build      "inProgress"   :in-progress-after-failed))
+        (fact "correct status-text and state are set based on current and previous build"
+              (let [build-info (c/generate-build-info ?build ?previous "commit message")]
+                (:status-text build-info) => ?status-text
+                (:state build-info) => ?state))
+        ?build             ?previous         ?status-text   ?state
+        succeeded-build    :any              "succeeded"    :succeeded
+        failed-build       :any              "failed"       :failed
+        in-progress-build  succeeded-build   "inProgress"   :in-progress
+        in-progress-build  failed-build      "inProgress"   :in-progress-after-failed))

@@ -2,7 +2,6 @@
   (:require [hiccup.core :as hiccup]
             [clojure.string :as s]))
 
-
 (def refresh-icon [:div.refresh-icon.hidden [:i.fa.fa-refresh.fa-spin.fa-3x]])
 
 (def error-modal [:div.error-modal.hidden
@@ -38,7 +37,6 @@
    [:br]
    [:div.commit-message commit-message]])
 
-
 ; ==================================================
 ; ATTEMPT AT UNIVERSAL HTML GENERATOR
 ; ==================================================
@@ -54,17 +52,17 @@
         panel-width 25
         panel-height (/ 100 panel-rows)]
     (hiccup/html
-      [:head
-       [:title "Build Monitor"]
-       [:link#favicon {:rel "shortcut icon" :href favicon-path}]
-       [:link {:rel "stylesheet" :href "https://fonts.googleapis.com/css?family=Open+Sans|Roboto"}]
-       [:link {:rel "stylesheet" :href
-               "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
-       [:link {:rel "stylesheet ":href "/style.css" :type "text/css"}]]
-      [:style (str ".panel { width:" panel-width "%; height:" panel-height "%; }")]
-      [:body
-       refresh-icon
-       error-modal
-       (map generate-build-panel build-info-maps)
-       (map generate-release-env-panels release-info-maps)
-       [:script {:src "/refresh.js" :defer "defer"}]])))
+     [:head
+      [:title "Build Monitor"]
+      [:link#favicon {:rel "shortcut icon" :href favicon-path}]
+      [:link {:rel "stylesheet" :href "https://fonts.googleapis.com/css?family=Open+Sans|Roboto"}]
+      [:link {:rel "stylesheet" :href
+              "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
+      [:link {:rel "stylesheet " :href "/style.css" :type "text/css"}]]
+     [:style (str ".panel { width:" panel-width "%; height:" panel-height "%; }")]
+     [:body
+      refresh-icon
+      error-modal
+      (map generate-build-panel build-info-maps)
+      (map generate-release-env-panels release-info-maps)
+      [:script {:src "/refresh.js" :defer "defer"}]])))
