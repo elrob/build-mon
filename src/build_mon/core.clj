@@ -17,7 +17,7 @@
                               (println exception)
                               (println "=============================="))})
 
-(def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded])
+(def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded :not-started])
 
 (defn- release-not-started? [release] (= (:status release) "notStarted"))
 (defn- release-succeeded? [release] (= (:status release) "succeeded"))
@@ -45,13 +45,14 @@
 (defn- generate-release-environments [release previous-release]
   (let [environments (-> release :environments)
         previous-environments (-> previous-release :environments)]
-    (map (fn [env]
-           (let [prev-env-release (filter (fn [prev-env]
-                                            (= (:name env) (:name prev-env)))
-                                          previous-environments)
-                 release-state (get-release-state env prev-env-release)]
-             {:env-name (:name env) :state release-state}))
-         environments)))
+      (map (fn [env]
+      ; need to explicitly grab first item here because filter returns a collection
+             (let [prev-env-release (first (filter (fn [prev-env]
+                                              (= (:name env) (:name prev-env)))
+                                            previous-environments))
+                   release-state (get-release-state env prev-env-release)]
+               {:env-name (:name env) :state release-state}))
+           environments)))
 
 (defn- generate-release-info [release previous-release]
   {:release-definition-name (-> :releaseDefinition release :name)
@@ -83,9 +84,16 @@
 (defn construct-favicon-path [state]
   (str "/favicon_" (name state) ".ico"))
 
+(defn get-release-states [release-info-maps]
+    (let [release-envs (flatten (map :release-environments release-info-maps))]
+         (map :state release-envs)))
+
+(defn get-build-states [build-info-maps]
+  (remove nil? (map :state build-info-maps)))
+
 (defn get-favicon-path [build-info-maps release-info-maps]
-  (let [build-states (remove nil? (map :state build-info-maps))
-        release-states (remove nil? (map :state release-info-maps))
+  (let [build-states (get-build-states build-info-maps)
+        release-states (get-release-states release-info-maps)
         all-states (distinct (concat build-states release-states))
         sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
     (construct-favicon-path (first (sort-by sorting-map all-states)))))
