@@ -2,13 +2,19 @@
   (:require [clostache.parser :as c]))
 
 (def build-definitions-url
-  "https://{{account}}.visualstudio.com/defaultcollection/{{project}}/_apis/build/definitions?api-version=2.0")
+  (str "https://{{account}}.visualstudio.com"
+       "/defaultcollection/{{project}}/_apis/build/definitions"
+       "?api-version=2.0"))
 
 (def last-two-builds-url
-  "https://{{account}}.visualstudio.com/defaultcollection/{{project}}/_apis/build/builds?api-version=2.0&$top=2&definitions={{build}}")
+  (str "https://{{account}}.visualstudio.com"
+       "/defaultcollection/{{project}}/_apis/build/builds"
+       "?api-version=2.0&$top=2&definitions={{build}}"))
 
 (def commit-url
-  "https://{{account}}.visualstudio.com/defaultcollection/_apis/git/repositories/{{repo}}/commits/{{version}}?api-version=1.0")
+  (str "https://{{account}}.visualstudio.com"
+       "/defaultcollection/_apis/git/repositories/{{repo}}/commits/{{version}}"
+       "?api-version=1.0"))
 
 (defn- retrieve-commit-message [vso-api-data build]
   (let [{:keys [get-fn account logger]} vso-api-data

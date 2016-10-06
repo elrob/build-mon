@@ -16,7 +16,8 @@
   (map (fn [release-env]
          (let [env-name (:env-name release-env)
                env-state (:state release-env)]
-           [:div {:id (str "release-definition-id-" release-definition-id "-" env-name) :class (str "panel " (name env-state))}
+           [:div {:id (str "release-definition-id-" release-definition-id "-" env-name)
+                  :class (str "panel " (name env-state))}
             [:span.tag.release "RELEASE"]
             [:h1.release-definition-name release-definition-name]
             [:hr]

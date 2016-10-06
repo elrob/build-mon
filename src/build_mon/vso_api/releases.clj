@@ -2,10 +2,14 @@
   (:require [clostache.parser :as c]))
 
 (def release-definitions-url
-  "https://{{account}}.vsrm.visualstudio.com/defaultcollection/{{project}}/_apis/release/definitions?api-version=3.0-preview.2")
+  (str "https://{{account}}.vsrm.visualstudio.com"
+       "/defaultcollection/{{project}}/_apis/release/definitions"
+       "?api-version=3.0-preview.2"))
 
 (def last-two-releases-url
-  "https://{{account}}.vsrm.visualstudio.com/defaultcollection/{{project}}/_apis/release/releases?api-version=3.0-preview.2&$top=2&definitionId={{release}}")
+  (str "https://{{account}}.vsrm.visualstudio.com"
+       "/defaultcollection/{{project}}/_apis/release/releases"
+       "?api-version=3.0-preview.2&$top=2&definitionId={{release}}"))
 
 (defn- retrieve-release [release vso-release-api-data]
   (when-let [release-url (-> release :_links :self :href)]

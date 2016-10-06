@@ -17,6 +17,7 @@
   :target-path "target/%s"
   :profiles {:dev {:aliases {"test" ["do" "clean"
                                      ["cljfmt" "check"]
+                                     ["bikeshed" "-m" "120"]
                                      ["eastwood"]
                                      ["kibit"]
                                      ["midje"]]}
@@ -24,6 +25,7 @@
                                   [http-kit.fake "0.2.2"]]
                    :plugins  [[lein-midje "3.2"]
                               [lein-cljfmt "0.5.6"]
+                              [lein-bikeshed "0.3.0"]
                               [jonase/eastwood "0.2.3"]
                               [lein-kibit "0.1.2"]]}
              :uberjar {:aot :all}})

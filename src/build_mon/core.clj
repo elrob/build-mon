@@ -28,8 +28,10 @@
 
 (defn- get-release-state [release-env previous-release-env]
   (cond (release-succeeded? release-env) :succeeded
-        (and (release-in-progress? release-env) (release-succeeded? previous-release-env)) :in-progress
-        (and (release-in-progress? release-env) (not (release-succeeded? previous-release-env))) :in-progress-after-failed
+        (and (release-in-progress? release-env)
+             (release-succeeded? previous-release-env)) :in-progress
+        (and (release-in-progress? release-env)
+             (not (release-succeeded? previous-release-env))) :in-progress-after-failed
         (release-not-started? release-env) :not-started
         :default :failed))
 
