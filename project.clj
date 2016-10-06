@@ -18,5 +18,6 @@
   :profiles {:dev {:dependencies [[midje "1.8.2"]
                                   [http-kit.fake "0.2.2"]]
                    :plugins  [[lein-midje "3.2"]
-                             [lein-cljfmt "0.5.6"]]}
+                             [lein-cljfmt "0.5.6"]
+                             [jonase/eastwood "0.2.3"]]}
              :uberjar {:aot :all}})

@@ -1,6 +1,7 @@
 (ns build-mon.test.core
   (:require [midje.sweet :refer :all]
             [clojure.java.io :as io]
+            [clojure.string :as string]
             [build-mon.core :as c]))
 
 (def succeeded-build   {:result "succeeded"})
@@ -13,10 +14,11 @@
        (c/get-status-text in-progress-build) => "inProgress")
 
 (fact "there are no missing favicons"
-      (let [filenames-in-public-directory (map str (.list (io/file (io/resource "public"))))
+      (let [ico-filenames-in-public-directory (->> (io/resource "public") io/file .list (map str)
+                                                   (filter #(string/ends-with? % ".ico")))
             required-favicon-paths (map c/construct-favicon-path c/states-ordered-worst-first)
             required-favicon-filenames (map #(.substring % 1) required-favicon-paths)]
-        filenames-in-public-directory => (contains required-favicon-filenames :in-any-order :gaps-ok)))
+        ico-filenames-in-public-directory => (contains required-favicon-filenames :in-any-order)))
 
 (fact "get-release-states returns list of release states"
       (let [release-maps [{:release-environments [{:state :in-progress}]}

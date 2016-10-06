@@ -125,7 +125,7 @@
             (println "Response time:" (t/in-seconds (t/interval request-start-time (t/now))) "seconds")
             response))))))
 
-(defn handlers [vso-api vso-release-api]
+(defn request-handlers [vso-api vso-release-api]
   {:universal-monitor (partial universal-monitor vso-api vso-release-api)})
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
@@ -136,7 +136,7 @@
             get-fn (api-util/vso-api-get-fn vso-personal-access-token)
             vso-api (builds-api/vso-api-fns logger get-fn account project)
             vso-release-api (releases-api/vso-release-api-fns logger get-fn account project)
-            wrapped-handler (-> (handlers vso-api vso-release-api)
+            wrapped-handler (-> (request-handlers vso-api vso-release-api)
                                 wrap-routes
                                 (resource/wrap-resource "public")
                                 (params/wrap-params))]
