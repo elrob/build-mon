@@ -45,13 +45,14 @@
 (defn- generate-release-environments [release previous-release]
   (let [environments (-> release :environments)
         previous-environments (-> previous-release :environments)]
-    (map (fn [env]
-           (let [prev-env-release (filter (fn [prev-env]
-                                            (= (:name env) (:name prev-env)))
-                                          previous-environments)
-                 release-state (get-release-state env prev-env-release)]
-             {:env-name (:name env) :state release-state}))
-         environments)))
+      (map (fn [env]
+      ; need to explicitly grab first item here because filter returns a collection
+             (let [prev-env-release (first (filter (fn [prev-env]
+                                              (= (:name env) (:name prev-env)))
+                                            previous-environments))
+                   release-state (get-release-state env prev-env-release)]
+               {:env-name (:name env) :state release-state}))
+           environments)))
 
 (defn- generate-release-info [release previous-release]
   {:release-definition-name (-> :releaseDefinition release :name)
