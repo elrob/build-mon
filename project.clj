@@ -18,10 +18,12 @@
   :profiles {:dev {:aliases {"test" ["do" "clean"
                                      ["cljfmt" "check"]
                                      ["eastwood"]
+                                     ["kibit"]
                                      ["midje"]]}
                    :dependencies [[midje "1.8.2"]
                                   [http-kit.fake "0.2.2"]]
                    :plugins  [[lein-midje "3.2"]
-                             [lein-cljfmt "0.5.6"]
-                             [jonase/eastwood "0.2.3"]]}
+                              [lein-cljfmt "0.5.6"]
+                              [jonase/eastwood "0.2.3"]
+                              [lein-kibit "0.1.2"]]}
              :uberjar {:aot :all}})

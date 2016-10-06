@@ -43,8 +43,8 @@
   (if (in-progress? build) (:status build) (:result build)))
 
 (defn- generate-release-environments [release previous-release]
-  (let [environments (-> release :environments)
-        previous-environments (-> previous-release :environments)]
+  (let [environments (:environments release)
+        previous-environments (:environments previous-release)]
     (map (fn [env]
       ; need to explicitly grab first item here because filter returns a collection
            (let [prev-env-release (first (filter (fn [prev-env]

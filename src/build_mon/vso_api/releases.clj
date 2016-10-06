@@ -14,7 +14,7 @@
 (defn- retrieve-last-two-releases [vso-release-api-data release-definition-id]
   (let [{:keys [get-fn account project]} vso-release-api-data
         url (c/render last-two-releases-url {:account account :project project :release release-definition-id})]
-    (-> (get-fn url) :value)))
+    (:value (get-fn url))))
 
 (defn- retrieve-release-info [vso-release-api-data release-definition-id]
   (try (let [last-two-releases (retrieve-last-two-releases vso-release-api-data release-definition-id)
@@ -28,7 +28,7 @@
 (defn- retrieve-release-definitions [vso-release-api-data]
   (let [{:keys [get-fn logger]} vso-release-api-data
         url (c/render release-definitions-url vso-release-api-data)]
-    (try (-> (get-fn url) :value)
+    (try (:value (get-fn url))
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve release definitions." e)))))
 

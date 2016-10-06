@@ -15,14 +15,14 @@
         url (c/render commit-url {:account account
                                   :repo (-> build :repository :id)
                                   :version (:sourceVersion build)})]
-    (try (-> (get-fn url) :comment)
+    (try (:comment (get-fn url))
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve commit message." e)))))
 
 (defn- retrieve-last-two-builds [vso-api-data build-definition-id]
   (let [{:keys [get-fn account project logger]} vso-api-data
         url (c/render last-two-builds-url {:account account :project project :build build-definition-id})]
-    (try (-> (get-fn url) :value)
+    (try (:value (get-fn url))
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve last two builds." e)))))
 
@@ -37,7 +37,7 @@
 (defn- retrieve-build-definitions [vso-api-data]
   (let [{:keys [get-fn logger]} vso-api-data
         url (c/render build-definitions-url vso-api-data)]
-    (try (-> (get-fn url) :value)
+    (try (:value (get-fn url))
          (catch Exception e
            ((:log-exception logger) "Bad Response when attempting to retrieve build definitions." e)))))
 
