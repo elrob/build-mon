@@ -11,7 +11,8 @@
                  [http-kit "2.2.0"]
                  [cheshire "5.6.3"]
                  [hiccup "1.0.5"]
-                 [de.ubercode.clostache/clostache "1.4.0"]]
+                 [de.ubercode.clostache/clostache "1.4.0"]
+                 [com.taoensso/timbre "4.7.4"]]
   :main ^:skip-aot build-mon.core
   :resource-paths ["resources"]
   :target-path "target/%s"

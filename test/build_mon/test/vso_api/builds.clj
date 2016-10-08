@@ -1,16 +1,15 @@
 (ns build-mon.test.vso-api.builds
   (:require [midje.sweet :refer :all]
             [clojure.java.io :as io]
+            [taoensso.timbre :as log]
             [build-mon.vso-api.builds :as api]))
 
 (def account "VSO_ACCOUNT_NAME")
 (def project "VSO_PROJECT_NAME")
 
-(def logger {:log-exception (fn [message _] (println "Test logger:" message))})
-
 (fact "vso-api-fns returns a map of the exposed functions"
       (let [get-fn (fn [url] "API RESPONSE")
-            result (api/vso-api-fns logger get-fn account project)]
+            result (api/vso-api-fns get-fn account project)]
         (fn? (:retrieve-build-info result)) => truthy
         (fn? (:retrieve-build-definitions result)) => truthy))
 
@@ -26,13 +25,13 @@
                (let [some-build-definitions [:some-build-definition :some-other-build-definition]
                      stub-response-body {:value some-build-definitions}
                      get-fn-stubbed (get-fn-stub-requests {expected-url stub-response-body})
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
+                     vso-api (api/vso-api-fns get-fn-stubbed account project)]
                  ((:retrieve-build-definitions vso-api)) => some-build-definitions))
          (fact "when get-fn throws exception, returns nil"
                (let [stub-response {:status 503}
                      get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-build-definitions vso-api)) => nil))))
+                     vso-api (api/vso-api-fns get-fn-stubbed account project)]
+                 (log/with-level :fatal ((:retrieve-build-definitions vso-api))) => nil))))
 
 (facts "retrieve-build-info for a build definition"
        (let [build-definition-id 666
@@ -51,7 +50,7 @@
                (let [stub-commit-response-body {:comment "SOME COMMIT MESSAGE"}
                      get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-build-response-body
                                                            expected-commit-url stub-commit-response-body})
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
+                     vso-api (api/vso-api-fns get-fn-stubbed account project)]
                  ((:retrieve-build-info vso-api) build-definition-id)
                  => {:build some-build
                      :previous-build some-previous-build
@@ -61,7 +60,7 @@
                      stub-commit-response-body {:comment "SOME COMMIT MESSAGE"}
                      get-fn-stubbed (get-fn-stub-requests {expected-builds-url stub-builds-body-with-one-build
                                                            expected-commit-url stub-commit-response-body})
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
+                     vso-api (api/vso-api-fns get-fn-stubbed account project)]
                  ((:retrieve-build-info vso-api) build-definition-id)
                  => {:build some-build
                      :previous-build nil
@@ -69,15 +68,15 @@
          (fact "when get-fn throws exception for builds request, returns nil"
                (let [stub-response {:status 503}
                      get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-build-info vso-api) build-definition-id) => nil))
+                     vso-api (api/vso-api-fns get-fn-stubbed account project)]
+                 (log/with-level :fatal ((:retrieve-build-info vso-api) build-definition-id)) => nil))
          (fact "when get-fn throws exception for commit request, returns builds with a nil commit message"
                (let [stub-commit-response {:status 503}
                      get-fn-stubbed (fn [url] (if (= url expected-builds-url)
                                                 stub-build-response-body
                                                 (throw (Exception. "some exception"))))
-                     vso-api (api/vso-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-build-info vso-api) build-definition-id) =>
+                     vso-api (api/vso-api-fns get-fn-stubbed account project)]
+                 (log/with-level :fatal ((:retrieve-build-info vso-api) build-definition-id)) =>
                  {:build some-build
                   :previous-build some-previous-build
                   :commit-message nil}))))

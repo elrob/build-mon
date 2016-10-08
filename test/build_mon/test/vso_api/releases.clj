@@ -1,16 +1,15 @@
 (ns build-mon.test.vso-api.releases
   (:require [midje.sweet :refer :all]
             [clojure.java.io :as io]
+            [taoensso.timbre :as log]
             [build-mon.vso-api.releases :as api]))
 
 (def account "VSO_ACCOUNT_NAME")
 (def project "VSO_PROJECT_NAME")
 
-(def logger {:log-exception (fn [message _] (println "Test logger:" message))})
-
 (fact "vso-release-api-fns returns a map of the exposed functions"
       (let [get-fn (fn [url] "API RESPONSE")
-            result (api/vso-release-api-fns logger get-fn account project)]
+            result (api/vso-release-api-fns get-fn account project)]
         (fn? (:retrieve-release-info result)) => truthy
         (fn? (:retrieve-release-definitions result)) => truthy))
 
@@ -27,13 +26,13 @@
                      another-release-definition {:another-release-definition "some-other-value"}
                      stub-response-body {:count 2 :value [a-release-definition another-release-definition]}
                      get-fn-stubbed (get-fn-stub-requests {expected-url stub-response-body})
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
+                     api-fns (api/vso-release-api-fns get-fn-stubbed account project)]
                  ((:retrieve-release-definitions api-fns)) => [a-release-definition another-release-definition]))
          (fact "when get-fn throws exception, returns nil"
                (let [stub-response {:status 503}
                      get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-release-definitions api-fns)) => nil))))
+                     api-fns (api/vso-release-api-fns get-fn-stubbed account project)]
+                 (log/with-level :fatal ((:retrieve-release-definitions api-fns))) => nil))))
 
 (facts "retrieve-release-info for a release definition"
        (let [release-definition-id 666
@@ -50,7 +49,7 @@
                      get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-releases-response
                                                            release-url a-release
                                                            previous-release-url a-previous-release})
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
+                     api-fns (api/vso-release-api-fns get-fn-stubbed account project)]
                  ((:retrieve-release-info api-fns) release-definition-id)
                  => {:release a-release
                      :previous-release a-previous-release}))
@@ -60,17 +59,17 @@
                      a-release {:a 1}
                      get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-releases-response
                                                            release-url a-release})
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
+                     api-fns (api/vso-release-api-fns get-fn-stubbed account project)]
                  ((:retrieve-release-info api-fns) release-definition-id)
                  => {:release {:a 1} :previous-release nil}))
          (fact "when there are no releases, returns nil current and previous release"
                (let [stub-releases-response {:count 0 :value []}
                      get-fn-stubbed (get-fn-stub-requests {expected-releases-url stub-releases-response})
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
+                     api-fns (api/vso-release-api-fns get-fn-stubbed account project)]
                  ((:retrieve-release-info api-fns) release-definition-id)
                  => {:release nil :previous-release nil}))
          (fact "when get-fn throws exception, returns nil"
                (let [stub-response {:status 503}
                      get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
-                     api-fns (api/vso-release-api-fns logger get-fn-stubbed account project)]
-                 ((:retrieve-release-info api-fns) release-definition-id) => nil))))
+                     api-fns (api/vso-release-api-fns get-fn-stubbed account project)]
+                 (log/with-level :fatal ((:retrieve-release-info api-fns) release-definition-id)) => nil))))

@@ -5,17 +5,12 @@
             [ring.util.codec :as codec]
             [bidi.bidi :as bidi]
             [clj-time.core :as t]
+            [taoensso.timbre :as log]
             [build-mon.vso-api.builds :as builds-api]
             [build-mon.vso-api.releases :as releases-api]
             [build-mon.vso-api.util :as api-util]
             [build-mon.html :as html])
   (:gen-class))
-
-(def logger {:log-exception (fn [message exception]
-                              (println "=========   ERROR   ==========")
-                              (println message)
-                              (println exception)
-                              (println "=============================="))})
 
 (def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded :not-started])
 
@@ -124,7 +119,8 @@
       (when-let [route (bidi/match-route routes (:uri request))]
         (when-let [handler (-> route :handler handlers)]
           (let [response (handler (merge request (select-keys route [:route-params])))]
-            (println "Response time:" (t/in-seconds (t/interval request-start-time (t/now))) "seconds")
+            (log/info (format "Response time: %s seconds"
+                              (t/in-seconds (t/interval request-start-time (t/now)))))
             response))))))
 
 (defn request-handlers [vso-api vso-release-api]
@@ -136,11 +132,11 @@
       (let [account (codec/url-encode vso-account)
             project (codec/url-encode vso-project)
             get-fn (api-util/vso-api-get-fn vso-personal-access-token)
-            vso-api (builds-api/vso-api-fns logger get-fn account project)
-            vso-release-api (releases-api/vso-release-api-fns logger get-fn account project)
+            vso-api (builds-api/vso-api-fns get-fn account project)
+            vso-release-api (releases-api/vso-release-api-fns get-fn account project)
             wrapped-handler (-> (request-handlers vso-api vso-release-api)
                                 wrap-routes
                                 (resource/wrap-resource "public")
                                 (params/wrap-params))]
         (ring-jetty/run-jetty wrapped-handler {:port port}))
-      (println "App didn't start due to missing parameters."))))
+      (log/error "App didn't start due to missing parameters."))))

@@ -1,5 +1,6 @@
 (ns build-mon.vso-api.releases
-  (:require [clostache.parser :as c]))
+  (:require [clostache.parser :as c]
+            [taoensso.timbre :as log]))
 
 (def release-definitions-url
   (str "https://{{account}}.vsrm.visualstudio.com"
@@ -25,19 +26,16 @@
              [release previous-release] (map #(retrieve-release % vso-release-api-data) last-two-releases)]
          {:release release :previous-release previous-release})
        (catch Exception e
-         ((-> vso-release-api-data :logger :log-exception)
-          (format "Bad Response when attempting to retrieve release %s." release-definition-id)
-          e))))
+         (log/error e (format "Bad Response when attempting to retrieve release %s."
+                              release-definition-id)))))
 
 (defn- retrieve-release-definitions [vso-release-api-data]
-  (let [{:keys [get-fn logger]} vso-release-api-data
-        url (c/render release-definitions-url vso-release-api-data)]
-    (try (:value (get-fn url))
+  (let [url (c/render release-definitions-url vso-release-api-data)]
+    (try (:value ((:get-fn vso-release-api-data) url))
          (catch Exception e
-           ((:log-exception logger) "Bad Response when attempting to retrieve release definitions." e)))))
+           (log/error e "Bad Response when attempting to retrieve release definitions.")))))
 
-(defn vso-release-api-fns [logger get-fn account project]
-  (let [vso-release-api-data {:get-fn get-fn :logger logger
-                              :account account :project project}]
+(defn vso-release-api-fns [get-fn account project]
+  (let [vso-release-api-data {:get-fn get-fn :account account :project project}]
     {:retrieve-release-info (partial retrieve-release-info vso-release-api-data)
      :retrieve-release-definitions (partial retrieve-release-definitions vso-release-api-data)}))
