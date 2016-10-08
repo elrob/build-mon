@@ -16,7 +16,7 @@
          (let [env-name (:env-name release-env)
                env-state (:state release-env)]
            [:div {:id (str "release-definition-id-" release-definition-id "-" env-name)
-                  :class (str "panel " (name env-state))}
+                  :class (str "panel " (when env-state (name env-state)))}
             [:span.tag.release "RELEASE"]
             [:h1.release-definition-name release-definition-name]
             [:hr]
@@ -27,7 +27,7 @@
 
 (defn- generate-build-panel [{:keys [build-definition-name build-definition-id build-number
                                      status-text state commit-message]}]
-  [:div {:id (str "build-definition-id-" build-definition-id) :class (str "panel " (name state))}
+  [:div {:id (str "build-definition-id-" build-definition-id) :class (str "panel " (when state (name state)))}
    [:span.tag.build "BUILD"]
    [:h1.build-definition-name build-definition-name]
    [:hr]
@@ -37,10 +37,10 @@
    [:div.commit-message commit-message]])
 
 (defn- count-total-release-envs [release-info-maps]
-  (reduce + (map (fn [rel-info-map] (count (:release-environments rel-info-map))) release-info-maps)))
+  (reduce + (map #(count (:release-environments %)) release-info-maps)))
 
 (defn- panel-dimensions [build-info-maps release-info-maps]
-  (let [panel-count (+ (count build-info-maps) (count-total-release-envs release-info-maps))
+  (let [panel-count (max 1 (+ (count build-info-maps) (count-total-release-envs release-info-maps)))
         max-panels-per-row 4]
     {:panel-width (* 100 (if (<= panel-count max-panels-per-row) (/ panel-count) (/ max-panels-per-row)))
      :panel-height (* 100 (/ (int (Math/ceil (/ panel-count max-panels-per-row)))))}))
