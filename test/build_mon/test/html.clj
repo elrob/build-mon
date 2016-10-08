@@ -4,8 +4,7 @@
             [build-mon.html :as html]))
 
 (facts "about generating build monitor html"
-       (let [succeeded-build-info {:build-definition-name "BD1"
-                                   :build-definition-id 10
+       (let [succeeded-build-info {:build-definition-name "BD1" :build-definition-id 10
                                    :build-number "2015.12.23.03"
                                    :commit-message "change things"
                                    :status-text "succeeded"
@@ -46,4 +45,16 @@
                         html-string => (contains "BD2"))
                   (fact "included commit messages from build definitions"
                         html-string => (contains "change things")
-                        html-string => (contains "break things"))))))
+                        html-string => (contains "break things"))))
+
+         (tabular
+          (fact "generates correct panel width and height"
+                (html/generate-build-monitor-html (repeat ?builds succeeded-build-info) [] :anything) =>
+                (contains ?panel-dimensions-style))
+          ?builds ?panel-dimensions-style
+          1       ".panel { width:100%; height:100%; }"
+          2       ".panel { width:50%; height:100%; }"
+          3       ".panel { width:33.3333%; height:100%; }"
+          4       ".panel { width:25%; height:100%; }"
+          5       ".panel { width:25%; height:50%; }"
+          9       ".panel { width:25%; height:33.3333%; }")))

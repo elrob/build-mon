@@ -8,7 +8,6 @@
                   [:div.error-modal-background]
                   [:h1.error-modal-text "Build Monitor Error"]])
 
-;RELEASE
 (defn- generate-release-env-panels [{:keys [release-definition-name
                                             release-definition-id
                                             release-number
@@ -26,7 +25,6 @@
             [:h1.release-env-name env-name]]))
        release-environments))
 
-;BUILD
 (defn- generate-build-panel [{:keys [build-definition-name build-definition-id build-number
                                      status-text state commit-message]}]
   [:div {:id (str "build-definition-id-" build-definition-id) :class (str "panel " (name state))}
@@ -38,20 +36,17 @@
    [:br]
    [:div.commit-message commit-message]])
 
-; ==================================================
-; ATTEMPT AT UNIVERSAL HTML GENERATOR
-; ==================================================
-
-(defn- count-total-releases [release-info-maps]
+(defn- count-total-release-envs [release-info-maps]
   (reduce + (map (fn [rel-info-map] (count (:release-environments rel-info-map))) release-info-maps)))
 
+(defn- panel-dimensions [build-info-maps release-info-maps]
+  (let [panel-count (+ (count build-info-maps) (count-total-release-envs release-info-maps))
+        max-panels-per-row 4]
+    {:panel-width (* 100 (if (<= panel-count max-panels-per-row) (/ panel-count) (/ max-panels-per-row)))
+     :panel-height (* 100 (/ (int (Math/ceil (/ panel-count max-panels-per-row)))))}))
+
 (defn generate-build-monitor-html [build-info-maps release-info-maps favicon-path]
-  (let [total-builds (count build-info-maps)
-        total-releases (count-total-releases release-info-maps)
-        max-panels-per-row 4
-        panel-rows (Math/ceil (/ (+ total-builds total-releases) max-panels-per-row))
-        panel-width 25
-        panel-height (/ 100 panel-rows)]
+  (let [{:keys [panel-width panel-height]} (panel-dimensions build-info-maps release-info-maps)]
     (hiccup/html
      [:head
       [:title "Build Monitor"]
@@ -60,7 +55,10 @@
       [:link {:rel "stylesheet" :href
               "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"}]
       [:link {:rel "stylesheet " :href "/style.css" :type "text/css"}]]
-     [:style (str ".panel { width:" panel-width "%; height:" panel-height "%; }")]
+     [:style (str ".panel { width:"
+                  (if (integer? panel-width) panel-width (format "%.4f" (float panel-width)))
+                  "%; height:"
+                  (if (integer? panel-height) panel-height (format "%.4f" (float panel-height))) "%; }")]
      [:body
       refresh-icon
       error-modal
