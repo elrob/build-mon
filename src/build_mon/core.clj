@@ -95,23 +95,26 @@
         sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
     (construct-favicon-path (first (sort-by sorting-map all-states)))))
 
-(defn universal-monitor-for-definition-ids [vso-api vso-release-api request build-definition-ids release-definition-ids]
+(defn build-monitor-for-definitions [vso-api vso-release-api request
+                                     build-definition-ids release-definition-ids]
   (let [build-info-maps (remove nil? (map #(retrieve-build-info vso-api %) build-definition-ids))
-        release-info-maps (remove nil? (map #(retrieve-release-info vso-release-api %) release-definition-ids))]
+        release-info-maps (remove nil?
+                                  (map #(retrieve-release-info vso-release-api %) release-definition-ids))]
     (when (and (not-empty build-info-maps) (not-empty release-info-maps))
       (let [favicon-path (get-favicon-path build-info-maps release-info-maps)]
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
          :body (html/generate-build-monitor-html build-info-maps release-info-maps favicon-path)}))))
 
-(defn universal-monitor [vso-api vso-release-api request]
+(defn build-monitor [vso-api vso-release-api request]
   (let [release-definitions ((:retrieve-release-definitions vso-release-api))
         release-definition-ids (map :id release-definitions)
         build-definitions ((:retrieve-build-definitions vso-api))
         build-definition-ids (map :id build-definitions)]
-    (universal-monitor-for-definition-ids vso-api vso-release-api request build-definition-ids release-definition-ids)))
+    (build-monitor-for-definitions vso-api vso-release-api request
+                                   build-definition-ids release-definition-ids)))
 
-(def routes ["/" :universal-monitor])
+(def routes ["/" :build-monitor])
 
 (defn wrap-routes [handlers]
   (fn [request]
@@ -124,7 +127,7 @@
             response))))))
 
 (defn request-handlers [vso-api vso-release-api]
-  {:universal-monitor (partial universal-monitor vso-api vso-release-api)})
+  {:build-monitor (partial build-monitor vso-api vso-release-api)})
 
 (defn -main [& [vso-account vso-project vso-personal-access-token port]]
   (let [port (Integer. (or port 3000))]

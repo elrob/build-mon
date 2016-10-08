@@ -27,7 +27,8 @@
                      stub-response-body {:count 2 :value [a-release-definition another-release-definition]}
                      get-fn-stubbed (get-fn-stub-requests {expected-url stub-response-body})
                      api-fns (api/vso-release-api-fns get-fn-stubbed account project)]
-                 ((:retrieve-release-definitions api-fns)) => [a-release-definition another-release-definition]))
+                 ((:retrieve-release-definitions api-fns))
+                 => [a-release-definition another-release-definition]))
          (fact "when get-fn throws exception, returns nil"
                (let [stub-response {:status 503}
                      get-fn-stubbed (fn [url] (throw (Exception. "some exception")))
@@ -37,9 +38,9 @@
 (facts "retrieve-release-info for a release definition"
        (let [release-definition-id 666
              expected-releases-url (str "https://" account ".vsrm.visualstudio.com/defaultcollection/" project
-                                        "/_apis/release/releases?api-version=3.0-preview.2&$top=2&definitionId="
-                                        release-definition-id)]
-         (fact "calls VSO api for last two releases, then for the individual releases and extracts release info"
+                                        "/_apis/release/releases?api-version=3.0-preview.2&$top=2"
+                                        "&definitionId=" release-definition-id)]
+         (fact "calls VSO api for last two releases, then for each release and extracts release info"
                (let [release-url "https://SOME_RELEASE.URL"
                      previous-release-url "https://SOME_OTHER_RELEASE.URL"
                      stub-releases-response {:count 2 :value [{:_links {:self {:href release-url}}}

@@ -18,7 +18,7 @@
 
 (defn- retrieve-last-two-releases [vso-release-api-data release-definition-id]
   (let [{:keys [get-fn account project]} vso-release-api-data
-        url (c/render last-two-releases-url {:account account :project project :release release-definition-id})]
+        url (c/render last-two-releases-url (assoc vso-release-api-data :release release-definition-id))]
     (:value (get-fn url))))
 
 (defn- retrieve-release-info [vso-release-api-data release-definition-id]

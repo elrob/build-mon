@@ -52,7 +52,8 @@
           [succeeded in-progress in-progress-after-failed failed] failed-favicon)))
 
 (facts "about generating-build-info"
-       (let [build {:result "succeeded" :buildNumber "2015.12.17.04" :definition {:name "My CI Build" :id 10}}]
+       (let [build {:result "succeeded" :buildNumber "2015.12.17.04"
+                    :definition {:name "My CI Build" :id 10}}]
          (c/generate-build-info build succeeded-build "great commit")
          => {:build-definition-name "My CI Build"
              :build-definition-id 10

@@ -14,7 +14,7 @@
 
        (tabular
         (fact "generates correct panel dimensions for multiple builds"
-              (html/generate-build-monitor-html (repeat ?builds :a-build) [] :anything) =>
+              (html/generate-build-monitor-html (repeat ?builds :a-build) [] :any) =>
               (contains ?panel-dimensions-style))
         ?builds ?panel-dimensions-style
         1       ".panel { width:100%; height:100%; }"
@@ -28,7 +28,7 @@
              release-with-two-envs {:release-environments [:an-env :an-env]}]
          (tabular
           (fact  "generates correct dimensions for multiple builds and releases"
-                 (html/generate-build-monitor-html [:build] ?releases :anything) =>
+                 (html/generate-build-monitor-html [:build] ?releases :any) =>
                  (contains ?panel-dimensions-style))
           ?releases                ?panel-dimensions-style
           [release-with-one-env]   ".panel { width:50%; height:100%; }"
@@ -64,7 +64,7 @@
                         html-string => (contains "change things"))))
          (facts "for multiple builds"
                 (let [two-builds [succeeded-build-info failed-build-info]
-                      html-string (html/generate-build-monitor-html two-builds [] :anything)]
+                      html-string (html/generate-build-monitor-html two-builds [] :any)]
                   (fact "there is a build panel per build"
                         (count (re-seq (re-pattern "BUILD") html-string)) => 2)
                   (fact "includes ids of build definitions"
@@ -102,6 +102,6 @@
                                             (contains "<h3 class=\"release-env-name\">some-envName2")))))
          (facts "for multiple releases"
                 (let [two-releases-each-with-two-envs [release release]
-                      html-string (html/generate-build-monitor-html [] two-releases-each-with-two-envs :anything)]
+                      html-string (html/generate-build-monitor-html [] two-releases-each-with-two-envs :any)]
                   (fact "there is a release panel per environment"
                         (count (re-seq (re-pattern "RELEASE") html-string)) => 4)))))

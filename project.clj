@@ -18,7 +18,7 @@
   :target-path "target/%s"
   :profiles {:dev {:aliases {"test" ["do" "clean"
                                      ["cljfmt" "check"]
-                                     ["bikeshed" "-m" "120"]
+                                     ["bikeshed" "-m" "110"]
                                      ["eastwood"]
                                      ["kibit"]
                                      ["midje"]

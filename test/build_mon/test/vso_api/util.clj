@@ -7,7 +7,7 @@
 
 (facts "about vso-api-get-fn"
        (let [get-fn (util/vso-api-get-fn "VSO_API_TOKEN")]
-         (fact "wraps an api token and returns a function which makes a HTTP GET request and parses json response"
+         (fact "wraps an api token in a function which makes a HTTP GET request and parses json response"
                (http/with-fake-http [{:url some-url :basic-auth [nil "VSO_API_TOKEN"]}
                                      {:status 200 :body "{\"some\":\"json\"}"}]
                  (get-fn some-url) => {:some "json"}))
