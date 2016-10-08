@@ -20,10 +20,12 @@
                                      ["bikeshed" "-m" "120"]
                                      ["eastwood"]
                                      ["kibit"]
-                                     ["midje"]]}
+                                     ["midje"]
+                                     ["cloverage" "--runner" ":midje"]]}
                    :dependencies [[midje "1.8.3"]
                                   [http-kit.fake "0.2.2"]]
                    :plugins  [[lein-midje "3.2"]
+                              [lein-cloverage "1.0.7"]
                               [lein-cljfmt "0.5.6"]
                               [lein-bikeshed "0.3.0"]
                               [jonase/eastwood "0.2.3"]
