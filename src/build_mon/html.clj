@@ -18,22 +18,21 @@
            [:div {:id (str "release-definition-id-" release-definition-id "-" env-name)
                   :class (str "panel " (when env-state (name env-state)))}
             [:span.tag.release "RELEASE"]
-            [:h1.release-definition-name release-definition-name]
+            [:h2.release-definition-name release-definition-name]
             [:hr]
-            [:h1.release-number release-number]
+            [:h3.release-number release-number]
             [:hr]
-            [:h1.release-env-name env-name]]))
+            [:h3.release-env-name env-name]]))
        release-environments))
 
 (defn- generate-build-panel [{:keys [build-definition-name build-definition-id build-number
                                      status-text state commit-message]}]
   [:div {:id (str "build-definition-id-" build-definition-id) :class (str "panel " (when state (name state)))}
    [:span.tag.build "BUILD"]
-   [:h1.build-definition-name build-definition-name]
+   [:h2.build-definition-name build-definition-name]
    [:hr]
-   [:h1.build-number build-number]
+   [:h3.build-number build-number]
    [:hr]
-   [:br]
    [:div.commit-message commit-message]])
 
 (defn- count-total-release-envs [release-info-maps]

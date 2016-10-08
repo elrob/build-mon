@@ -94,12 +94,12 @@
                         html-string => (and (contains "id=\"release-definition-id-123-some-envName1")
                                             (contains "id=\"release-definition-id-123-some-envName2")))
                   (fact "release-panels display release definition name"
-                        html-string => (contains "<h1 class=\"release-definition-name\">some-definitionName"))
+                        html-string => (contains "<h2 class=\"release-definition-name\">some-definitionName"))
                   (fact "release-panels display release number"
-                        html-string => (contains "<h1 class=\"release-number\">release xxx"))
+                        html-string => (contains "<h3 class=\"release-number\">release xxx"))
                   (fact "release-panels display release environment name"
-                        html-string => (and (contains "<h1 class=\"release-env-name\">some-envName1")
-                                            (contains "<h1 class=\"release-env-name\">some-envName2")))))
+                        html-string => (and (contains "<h3 class=\"release-env-name\">some-envName1")
+                                            (contains "<h3 class=\"release-env-name\">some-envName2")))))
          (facts "for multiple releases"
                 (let [two-releases-each-with-two-envs [release release]
                       html-string (html/generate-build-monitor-html [] two-releases-each-with-two-envs :anything)]
