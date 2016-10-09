@@ -5,11 +5,10 @@
 (defn construct-favicon-path [state]
   (str "/favicon_" (name state) ".ico"))
 
-(defn get-release-states [release-info-maps]
-  (let [release-envs (flatten (map :release-environments release-info-maps))]
-    (map :state release-envs)))
+(defn- get-release-states [release-info-maps]
+  (map :state (flatten (map :release-environments release-info-maps))))
 
-(defn get-build-states [build-info-maps]
+(defn- get-build-states [build-info-maps]
   (remove nil? (map :state build-info-maps)))
 
 (defn get-favicon-path [build-info-maps release-info-maps]
