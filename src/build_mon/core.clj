@@ -9,10 +9,9 @@
             [build-mon.vso-api.builds :as builds-api]
             [build-mon.vso-api.releases :as releases-api]
             [build-mon.vso-api.util :as api-util]
+            [build-mon.favicon :as favicon]
             [build-mon.html :as html])
   (:gen-class))
-
-(def states-ordered-worst-first [:failed :in-progress-after-failed :in-progress :succeeded :not-started])
 
 (defn- release-not-started? [release] (= (:status release) "notStarted"))
 (defn- release-succeeded? [release] (= (:status release) "succeeded"))
@@ -78,30 +77,13 @@
     (when build
       (generate-build-info build previous-build commit-message))))
 
-(defn construct-favicon-path [state]
-  (str "/favicon_" (name state) ".ico"))
-
-(defn get-release-states [release-info-maps]
-  (let [release-envs (flatten (map :release-environments release-info-maps))]
-    (map :state release-envs)))
-
-(defn get-build-states [build-info-maps]
-  (remove nil? (map :state build-info-maps)))
-
-(defn get-favicon-path [build-info-maps release-info-maps]
-  (let [build-states (get-build-states build-info-maps)
-        release-states (get-release-states release-info-maps)
-        all-states (distinct (concat build-states release-states))
-        sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
-    (construct-favicon-path (first (sort-by sorting-map all-states)))))
-
 (defn build-monitor-for-definitions [vso-api vso-release-api request
                                      build-definition-ids release-definition-ids]
   (let [build-info-maps (remove nil? (map #(retrieve-build-info vso-api %) build-definition-ids))
         release-info-maps (remove nil?
                                   (map #(retrieve-release-info vso-release-api %) release-definition-ids))]
     (when (and (not-empty build-info-maps) (not-empty release-info-maps))
-      (let [favicon-path (get-favicon-path build-info-maps release-info-maps)]
+      (let [favicon-path (favicon/get-favicon-path build-info-maps release-info-maps)]
         {:status 200
          :headers {"Content-Type" "text/html; charset=utf-8"}
          :body (html/generate-build-monitor-html build-info-maps release-info-maps favicon-path)}))))
