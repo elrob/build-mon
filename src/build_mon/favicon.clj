@@ -18,4 +18,3 @@
         all-states (distinct (concat build-states release-states))
         sorting-map (into {} (map-indexed (fn [idx itm] [itm idx]) states-ordered-worst-first))]
     (construct-favicon-path (first (sort-by sorting-map all-states)))))
-
