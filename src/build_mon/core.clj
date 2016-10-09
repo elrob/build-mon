@@ -9,6 +9,7 @@
             [build-mon.vso-api.builds :as builds-api]
             [build-mon.vso-api.releases :as releases-api]
             [build-mon.vso-api.util :as api-util]
+            [build-mon.builds :as builds]
             [build-mon.favicon :as favicon]
             [build-mon.html :as html])
   (:gen-class))
@@ -16,9 +17,6 @@
 (defn- release-not-started? [release] (= (:status release) "notStarted"))
 (defn- release-succeeded? [release] (= (:status release) "succeeded"))
 (defn- release-in-progress? [release] (= (:status release) "inProgress"))
-
-(defn succeeded? [build] (= (:result build) "succeeded"))
-(defn in-progress? [build] (nil? (:result build)))
 
 (defn- get-release-state [release-env previous-release-env]
   (cond (release-succeeded? release-env) :succeeded
@@ -28,15 +26,6 @@
              (not (release-succeeded? previous-release-env))) :in-progress-after-failed
         (release-not-started? release-env) :not-started
         :default :failed))
-
-(defn get-state [build previous-build]
-  (cond (succeeded? build) :succeeded
-        (and (in-progress? build) (succeeded? previous-build)) :in-progress
-        (and (in-progress? build) (not (succeeded? previous-build))) :in-progress-after-failed
-        :default :failed))
-
-(defn get-status-text [build]
-  (if (in-progress? build) (:status build) (:result build)))
 
 (defn- generate-release-environments [release previous-release]
   (let [environments (:environments release)
@@ -56,15 +45,6 @@
    :release-number (:name release)
    :release-environments (generate-release-environments release previous-release)})
 
-(defn generate-build-info [build previous-build commit-message]
-  (let [state (get-state build previous-build)]
-    {:build-definition-name (-> build :definition :name)
-     :build-definition-id (-> build :definition :id)
-     :build-number (:buildNumber build)
-     :commit-message commit-message
-     :status-text (get-status-text build)
-     :state state}))
-
 (defn retrieve-release-info [vso-release-api release-definition-id]
   (let [{:keys [release previous-release]}
         ((:retrieve-release-info vso-release-api) release-definition-id)]
@@ -75,7 +55,7 @@
   (let [{:keys [build previous-build commit-message]}
         ((:retrieve-build-info vso-api) build-definition-id)]
     (when build
-      (generate-build-info build previous-build commit-message))))
+      (builds/generate-build-info build previous-build commit-message))))
 
 (defn build-monitor-for-definitions [vso-api vso-release-api request
                                      build-definition-ids release-definition-ids]

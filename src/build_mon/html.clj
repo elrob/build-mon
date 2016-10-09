@@ -26,7 +26,7 @@
        release-environments))
 
 (defn- generate-build-panel [{:keys [build-definition-name build-definition-id build-number
-                                     status-text state commit-message]}]
+                                     state commit-message]}]
   [:div {:id (str "build-definition-id-" build-definition-id) :class (str "panel " (when state (name state)))}
    [:span.tag.build "BUILD"]
    [:h2.build-definition-name build-definition-name]
