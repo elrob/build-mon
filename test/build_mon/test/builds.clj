@@ -1,7 +1,5 @@
 (ns build-mon.test.builds
   (:require [midje.sweet :refer :all]
-            [clojure.java.io :as io]
-            [clojure.string :as string]
             [build-mon.builds :as b]))
 
 (def succeeded-build   {:result "succeeded"})

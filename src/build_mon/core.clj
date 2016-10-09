@@ -10,46 +10,16 @@
             [build-mon.vso-api.releases :as releases-api]
             [build-mon.vso-api.util :as api-util]
             [build-mon.builds :as builds]
+            [build-mon.releases :as releases]
             [build-mon.favicon :as favicon]
             [build-mon.html :as html])
   (:gen-class))
-
-(defn- release-not-started? [release] (= (:status release) "notStarted"))
-(defn- release-succeeded? [release] (= (:status release) "succeeded"))
-(defn- release-in-progress? [release] (= (:status release) "inProgress"))
-
-(defn- get-release-state [release-env previous-release-env]
-  (cond (release-succeeded? release-env) :succeeded
-        (and (release-in-progress? release-env)
-             (release-succeeded? previous-release-env)) :in-progress
-        (and (release-in-progress? release-env)
-             (not (release-succeeded? previous-release-env))) :in-progress-after-failed
-        (release-not-started? release-env) :not-started
-        :default :failed))
-
-(defn- generate-release-environments [release previous-release]
-  (let [environments (:environments release)
-        previous-environments (:environments previous-release)]
-    (map (fn [env]
-      ; need to explicitly grab first item here because filter returns a collection
-           (let [prev-env-release (first (filter (fn [prev-env]
-                                                   (= (:name env) (:name prev-env)))
-                                                 previous-environments))
-                 release-state (get-release-state env prev-env-release)]
-             {:env-name (:name env) :state release-state}))
-         environments)))
-
-(defn- generate-release-info [release previous-release]
-  {:release-definition-name (-> :releaseDefinition release :name)
-   :release-definition-id (:id release)
-   :release-number (:name release)
-   :release-environments (generate-release-environments release previous-release)})
 
 (defn retrieve-release-info [vso-release-api release-definition-id]
   (let [{:keys [release previous-release]}
         ((:retrieve-release-info vso-release-api) release-definition-id)]
     (when release
-      (generate-release-info release previous-release))))
+      (releases/generate-release-info release previous-release))))
 
 (defn retrieve-build-info [vso-api build-definition-id]
   (let [{:keys [build previous-build commit-message]}
