@@ -24,6 +24,7 @@
                                      ["midje"]
                                      ["cloverage" "--runner" ":midje"]]}
                    :dependencies [[midje "1.8.3"]
+                                  [kerodon "0.8.0"]
                                   [http-kit.fake "0.2.2"]]
                    :plugins  [[lein-midje "3.2"]
                               [lein-cloverage "1.0.7"]

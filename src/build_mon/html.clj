@@ -4,10 +4,6 @@
 
 (def refresh-icon [:div.refresh-icon.hidden [:i.fa.fa-refresh.fa-spin.fa-3x]])
 
-(def error-modal [:div.error-modal.hidden
-                  [:div.error-modal-background]
-                  [:h1.error-modal-text "Build Monitor Error"]])
-
 (defn- generate-release-env-panels [{:keys [release-definition-name
                                             release-definition-id
                                             release-number
@@ -60,7 +56,6 @@
                   (if (integer? panel-height) panel-height (format "%.4f" (float panel-height))) "%; }")]
      [:body
       refresh-icon
-      error-modal
       (map generate-build-panel build-info-maps)
       (map generate-release-env-panels release-info-maps)
       [:script {:src "/refresh.js" :defer "defer"}]])))
