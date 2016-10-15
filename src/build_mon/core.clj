@@ -39,10 +39,10 @@
          :body (html/generate-build-monitor-html build-info-maps release-info-maps favicon-path)}))))
 
 (defn build-monitor [vso-api vso-release-api request]
-  (let [release-definitions ((:retrieve-release-definitions vso-release-api))
-        release-definition-ids (map :id release-definitions)
-        build-definitions ((:retrieve-build-definitions vso-api))
-        build-definition-ids (map :id build-definitions)]
+  (let [build-definitions ((:retrieve-build-definitions vso-api))
+        build-definition-ids (map :id build-definitions)
+        release-definitions ((:retrieve-release-definitions vso-release-api))
+        release-definition-ids (map :id release-definitions)]
     (build-monitor-for-definitions vso-api vso-release-api request
                                    build-definition-ids release-definition-ids)))
 
