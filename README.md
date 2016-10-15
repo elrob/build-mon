@@ -69,7 +69,3 @@ Run code analysis and tests:
 #### TODO:
 
 - reinstate error handling on front end (was removed from `refresh.js`) - VSO api sometimes goes down and it is useful to get some feedback in the browser
-- add any missing tests / update current tests to cover any untested functionality
-- add tests for releases stuff
-- refactor and break out core.clj as it has become too cumbersome
-
