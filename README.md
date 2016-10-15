@@ -23,10 +23,10 @@ A simple build monitor to display the status of Visual Studio Online builds and 
 #### Run with Java
 
 - Install Java
-- Download the release jar file
+- Download the [release jar file](https://github.com/elrob/build-mon/releases/download/v0.2.0/build-mon-0.2.0-standalone.jar)
 - Run app:
 
-        java -jar build-mon-0.1.0-standalone.jar "{VSO_ACCOUNT_NAME}" "{VSO_PROJECT_NAME}" "{VSO_PERSONAL_ACCESS_TOKEN}"
+        java -jar build-mon-0.2.0-standalone.jar "{VSO_ACCOUNT_NAME}" "{VSO_PROJECT_NAME}" "{VSO_PERSONAL_ACCESS_TOKEN}"
 
 - Visit [localhost:3000](http://localhost:3000)
 
